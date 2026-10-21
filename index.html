@@ -17,8 +17,6 @@
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Leaflet Offline Storage Plugin -->
-  <script src="https://unpkg.com/leaflet.offline@2.2.0/dist/leaflet.offline.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600&display=swap');
@@ -47,18 +45,19 @@
     .shift-strobe { animation: redline-strobe 0.12s infinite; }
     input[type=range] { accent-color: #FF6600; }
 
-    /* Ensure Leaflet container handles gestures smoothly on touchscreens */
-    #map {
-      width: 100%;
-      height: 100%;
-      background: #111217;
+    /* Clean Dark Mode Inversion for OpenStreetMap */
+    .osm-dark-tiles .leaflet-tile {
+      filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(200deg) saturate(0.2) !important;
+    }
+    .leaflet-container {
+      background: #0a0b10 !important;
     }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-3 relative bg-[#07080c]">
 
   <!-- TOP SHIFT LIGHT BAR -->
-  <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1.5 px-1 pt-0.5 pb-2 transition-all z-20">
+  <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1.5 px-1 pt-0.5 pb-2 transition-all z-40">
     <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
     <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
     <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
@@ -70,8 +69,7 @@
   </div>
 
   <!-- TOP BAR: Status, Mode Switcher, Fullscreen, Settings & Clock -->
-  <header class="flex justify-between items-center text-xs tracking-wider text-neutral-400 font-mono z-20">
-    <!-- Clickable GPS Button -->
+  <header class="flex justify-between items-center text-xs tracking-wider text-neutral-400 font-mono z-40">
     <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform" title="GPS Status">
       <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
       <span id="gps-status" class="text-[10px] font-bold text-neutral-200">ACQUIRING GPS</span>
@@ -84,7 +82,7 @@
       </button>
 
       <!-- Fullscreen Toggle -->
-      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform" title="Toggle Fullscreen">
+      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
         <svg id="fs-enter-icon" class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
           <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
@@ -94,7 +92,7 @@
       </button>
 
       <!-- Settings Icon -->
-      <button onclick="openSettingsModal()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform" title="Dashboard Settings">
+      <button onclick="openSettingsModal()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
         <svg class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
         </svg>
@@ -121,8 +119,6 @@
 
     <!-- LOWER SECTION -->
     <section class="grid grid-cols-2 gap-3 mb-1">
-      
-      <!-- LEFT: Odometers -->
       <div class="flex flex-col gap-2">
         <div class="hud-border rounded-xl p-2.5 flex flex-col justify-between">
           <div class="flex justify-between items-center">
@@ -147,7 +143,6 @@
         </div>
       </div>
 
-      <!-- RIGHT: Fuel Widget + Refuel Button -->
       <div class="hud-border rounded-xl p-3 flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center text-[10px] font-mono text-neutral-400 mb-1">
@@ -169,28 +164,30 @@
           REFUEL
         </button>
       </div>
-
     </section>
   </div>
 
-  <!-- ==================== VIEW 2: MAP VIEW (Leaflet Fix Applied) ==================== -->
-  <div id="map-view" class="hidden absolute inset-x-0 top-14 bottom-0 z-10 flex flex-col bg-neutral-950">
-    <!-- Map Canvas with explicit dimension guarantee -->
-    <div id="map" class="w-full flex-1 min-h-[300px]"></div>
+  <!-- ==================== VIEW 2: MAP VIEW (CLEAN LAYOUT) ==================== -->
+  <div id="map-view" class="hidden flex-1 flex flex-col relative my-2 rounded-2xl overflow-hidden border border-neutral-800 z-10">
+    <!-- Map Canvas with dark tile filter -->
+    <div id="map" class="w-full h-full osm-dark-tiles"></div>
 
-    <!-- Floating Speed Pill while in Map View -->
-    <div class="absolute bottom-16 left-4 z-[500] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-lg">
+    <!-- Floating Speed Pill -->
+    <div class="absolute bottom-16 left-4 z-[400] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-2xl">
       <span id="map-speed" class="text-4xl font-extrabold text-white">0</span>
       <span class="text-xs font-bold text-[#FF6600]">KM/H</span>
     </div>
 
-    <!-- Map Controls Bar -->
-    <div class="p-3 bg-neutral-900 border-t border-neutral-800 flex justify-between items-center z-[500]">
-      <button onclick="centerBike()" class="text-xs bg-neutral-800 border border-neutral-700 px-4 py-2.5 rounded-lg text-neutral-200 active:scale-95">
+    <!-- Map Actions -->
+    <div class="absolute bottom-2 inset-x-2 flex justify-between gap-2 z-[400]">
+      <button onclick="centerBike()" class="flex-1 bg-neutral-900/95 border border-neutral-700 py-3 rounded-xl text-xs font-bold text-white shadow-xl active:scale-95">
         Target Bike
       </button>
-      <button onclick="saveCurrentAreaOffline()" class="text-xs bg-emerald-500 text-neutral-950 font-extrabold px-4 py-2.5 rounded-lg active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
-        Save Area Offline
+      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">
+        +
+      </button>
+      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">
+        -
       </button>
     </div>
   </div>
@@ -296,9 +293,10 @@
       tripDist: parseFloat(localStorage.getItem('trip_dist')) || 0,
       topSpeed: parseFloat(localStorage.getItem('top_speed')) || 0,
       fuelRemaining: parseFloat(localStorage.getItem('fuel_rem')) || 10.0,
-      lastLat: 18.5204, // Default fallback coordinates
+      lastLat: 18.5204,
       lastLon: 73.8567,
       isMapVisible: false,
+      mapInitialized: false,
       gpsWatchId: null
     };
 
@@ -308,7 +306,7 @@
     const shiftContainer = document.getElementById('shift-bar-container');
     let keypadBuffer = "0";
 
-    // Auto-rearming Screen WakeLock
+    // WakeLock
     let wakeLockSentinel = null;
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
@@ -322,7 +320,7 @@
     });
     requestWakeLock();
 
-    // Fullscreen Toggle
+    // Fullscreen
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -344,27 +342,32 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ==================== LEAFLET MAP INITIALIZATION ====================
-    const map = L.map('map', { 
-      zoomControl: false,
-      attributionControl: false
-    }).setView([state.lastLat, state.lastLon], 15);
+    // ==================== RELIABLE LEAFLET MAP ====================
+    let map = null;
+    let bikeMarker = null;
 
-    // Reliable dark tiles (CartoDB Dark Matter)
-    const tileLayer = L.tileLayer.offline('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd'
-    }).addTo(map);
+    function initMap() {
+      if (map) return;
+      map = L.map('map', { 
+        zoomControl: false,
+        attributionControl: false
+      }).setView([state.lastLat, state.lastLon], 16);
 
-    const bikeIcon = L.divIcon({
-      className: 'custom-bike-marker',
-      html: `<div style="width: 18px; height: 18px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 12px #FF6600;"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
-    });
-    const bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
+      // OpenStreetMap standard tile server
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(map);
 
-    // ==================== VIEW TOGGLE WITH RESIZE FIX ====================
+      const bikeIcon = L.divIcon({
+        className: 'custom-bike-marker',
+        html: `<div style="width: 20px; height: 20px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 15px #FF6600;"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+      bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
+      state.mapInitialized = true;
+    }
+
     function toggleView() {
       state.isMapVisible = !state.isMapVisible;
       const cockpit = document.getElementById('cockpit-view');
@@ -376,13 +379,17 @@
         mapView.classList.remove('hidden');
         label.textContent = "SHOW HUD";
 
-        // CRITICAL BUGFIX: Forces Leaflet to re-calculate bounding dimensions
+        initMap();
+
+        // Immediate + staggered resize trigger to prevent gray tiles
         setTimeout(() => {
-          map.invalidateSize(true);
-          if (state.lastLat && state.lastLon) {
-            map.setView([state.lastLat, state.lastLon], 16, { animate: false });
+          if (map) {
+            map.invalidateSize(true);
+            if (state.lastLat && state.lastLon) {
+              map.setView([state.lastLat, state.lastLon], 16, { animate: false });
+            }
           }
-        }, 150);
+        }, 100);
       } else {
         cockpit.classList.remove('hidden');
         mapView.classList.add('hidden');
@@ -391,24 +398,13 @@
     }
 
     function centerBike() {
-      if (state.lastLat && state.lastLon) {
+      if (map && state.lastLat && state.lastLon) {
         map.setView([state.lastLat, state.lastLon], 16);
       }
     }
 
-    function saveCurrentAreaOffline() {
-      const bounds = map.getBounds();
-      const zoom = map.getZoom();
-      alert(`Saving route tiles around current view at zoom ${zoom}...`);
-      const tiles = tileLayer.getTilesInBounds(bounds, zoom);
-      let count = 0;
-      tiles.forEach(tile => {
-        tileLayer.saveTile(tile, () => {
-          count++;
-          if (count === tiles.length) alert(`Saved ${count} map tiles offline!`);
-        });
-      });
-    }
+    function zoomInMap() { if (map) map.zoomIn(); }
+    function zoomOutMap() { if (map) map.zoomOut(); }
 
     function updateShiftLights(currentSpeed) {
       leds.forEach(led => {
@@ -466,10 +462,11 @@
         document.getElementById('top-speed').textContent = state.topSpeed;
       }
 
-      // Update bike marker and center map smoothly
-      bikeMarker.setLatLng([lat, lon]);
-      if (state.isMapVisible) {
-        map.panTo([lat, lon], { animate: true });
+      if (bikeMarker) {
+        bikeMarker.setLatLng([lat, lon]);
+        if (state.isMapVisible && map) {
+          map.panTo([lat, lon], { animate: true });
+        }
       }
 
       if (state.lastLat && state.lastLon) {
@@ -491,11 +488,7 @@
 
     function handleGpsError(err) {
       document.getElementById('gps-dot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
-      const errorMap = {
-        1: "PERMISSION BLOCKED",
-        2: "NO SATELLITE FIX",
-        3: "GPS TIMEOUT"
-      };
+      const errorMap = { 1: "PERMISSION BLOCKED", 2: "NO SATELLITE FIX", 3: "GPS TIMEOUT" };
       document.getElementById('gps-status').textContent = errorMap[err.code] || "GPS ERROR";
     }
 
@@ -513,13 +506,8 @@
     function forceGpsRequest() {
       document.getElementById('gps-status').textContent = "REQUESTING ACCESS...";
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          handleGpsSuccess(pos);
-          startGpsWatcher();
-        },
-        (err) => {
-          handleGpsError(err);
-        },
+        (pos) => { handleGpsSuccess(pos); startGpsWatcher(); },
+        (err) => { handleGpsError(err); },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
@@ -538,7 +526,7 @@
     }
 
     function calibrateOdo() {
-      const val = prompt("Enter bike baseline Odo (KM):", state.baseOdo.toFixed(0));
+      const val = prompt("Enter baseline Odometer (KM):", state.baseOdo.toFixed(0));
       if (val !== null && !isNaN(parseFloat(val))) {
         state.baseOdo = parseFloat(val);
         localStorage.setItem('base_odo', state.baseOdo);
@@ -568,9 +556,8 @@
       document.getElementById('keypad-display').textContent = keypadBuffer;
     }
     function tapKey(digit) {
-      if (keypadBuffer === "0" && digit !== ".") {
-        keypadBuffer = digit;
-      } else {
+      if (keypadBuffer === "0" && digit !== ".") keypadBuffer = digit;
+      else {
         if (digit === "." && keypadBuffer.includes(".")) return;
         if (keypadBuffer.length < 5) keypadBuffer += digit;
       }
@@ -580,10 +567,7 @@
       keypadBuffer = keypadBuffer.length > 1 ? keypadBuffer.slice(0, -1) : "0";
       updateKeypadDisplay();
     }
-    function setPreset(amt) {
-      keypadBuffer = amt.toFixed(1);
-      updateKeypadDisplay();
-    }
+    function setPreset(amt) { keypadBuffer = amt.toFixed(1); updateKeypadDisplay(); }
     function fillFullTank() {
       keypadBuffer = Math.max(0, TANK_CAPACITY - state.fuelRemaining).toFixed(1);
       updateKeypadDisplay();
@@ -598,7 +582,7 @@
       closeKeypadModal();
     }
 
-    // Settings Logic
+    // Settings
     function openSettingsModal() {
       document.getElementById('input-warn').value = shiftConfig.warnSpeed;
       document.getElementById('input-peak').value = shiftConfig.peakSpeed;
@@ -638,7 +622,7 @@
       closeSettingsModal();
     }
 
-    // Service Worker Registration
+    // Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
