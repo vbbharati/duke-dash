@@ -45,7 +45,7 @@
     .shift-strobe { animation: redline-strobe 0.12s infinite; }
     input[type=range] { accent-color: #FF6600; }
 
-    /* Clean Dark Mode Map */
+    /* OpenStreetMap Dark Styling */
     .osm-dark-tiles .leaflet-tile {
       filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(200deg) saturate(0.2) !important;
     }
@@ -68,21 +68,19 @@
     <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
   </div>
 
-  <!-- TOP BAR: Status, Mode Switcher, Fullscreen, Settings & Clock -->
+  <!-- TOP BAR -->
   <header class="flex justify-between items-center text-xs tracking-wider text-neutral-400 font-mono z-40">
-    <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform" title="GPS Status">
+    <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform">
       <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
       <span id="gps-status" class="text-[10px] font-bold text-neutral-200">ACQUIRING GPS</span>
     </button>
     
     <div class="flex items-center gap-2">
-      <!-- Mode Toggle: Cockpit vs Map -->
       <button onclick="toggleView()" class="bg-[#FF6600]/20 border border-[#FF6600] text-[#FF6600] font-bold px-3 py-1.5 rounded-md text-[11px] active:scale-95 transition-transform">
         <span id="view-toggle-label">SHOW MAP</span>
       </button>
 
-      <!-- Fullscreen Toggle -->
-      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform" title="Toggle Fullscreen">
+      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
         <svg id="fs-enter-icon" class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
           <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
@@ -91,7 +89,6 @@
         </svg>
       </button>
 
-      <!-- Settings Icon -->
       <button onclick="openSettingsModal()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
         <svg class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -105,13 +102,12 @@
   <!-- ==================== VIEW 1: COCKPIT HUD ==================== -->
   <div id="cockpit-view" class="flex flex-col justify-between flex-1 my-1">
     
-    <!-- ANDROID AUTO STYLE TURN CARD (Hidden when no route active) -->
-    <div id="hud-nav-card" class="hidden hud-border border-[#FF6600]/40 rounded-2xl p-3 flex items-center gap-3.5 my-1 shadow-[0_0_20px_rgba(255,102,0,0.15)] transition-all">
-      <!-- Big Turn Icon Container -->
-      <div id="hud-turn-icon" class="w-12 h-12 rounded-xl bg-[#FF6600]/15 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0">
-        <!-- SVG injected dynamically -->
+    <!-- ANDROID AUTO STYLE TURN CARD -->
+    <div id="hud-nav-card" class="hidden hud-border border-[#FF6600]/40 rounded-2xl p-3 flex items-center gap-3.5 my-1 shadow-[0_0_20px_rgba(255,102,0,0.15)]">
+      <!-- Genuine Bottom-To-Top Forward Vector Arrow -->
+      <div id="hud-turn-icon" class="w-14 h-14 rounded-xl bg-[#FF6600]/15 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0">
+        <!-- SVG will be injected here -->
       </div>
-      <!-- Instruction Text & Distance -->
       <div class="flex-1 min-w-0">
         <div class="flex items-baseline gap-2">
           <span id="hud-turn-dist" class="text-2xl font-black text-white font-mono tracking-tight">--</span>
@@ -119,8 +115,7 @@
         </div>
         <p id="hud-turn-instruction" class="text-xs text-neutral-300 font-semibold truncate">Follow highlighted route</p>
       </div>
-      <!-- Quick Route Cancel Button -->
-      <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1.5 text-lg font-bold" title="End Navigation">&times;</button>
+      <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1.5 text-xl font-bold">&times;</button>
     </div>
 
     <!-- SPEED HERO -->
@@ -185,44 +180,44 @@
     </section>
   </div>
 
-  <!-- ==================== VIEW 2: MAP VIEW WITH DESTINATION SEARCH ==================== -->
+  <!-- ==================== VIEW 2: MAP VIEW ==================== -->
   <div id="map-view" class="hidden flex-1 flex flex-col relative my-2 rounded-2xl overflow-hidden border border-neutral-800 z-10">
     
-    <!-- Top Destination Search Header -->
-    <div class="absolute top-2 inset-x-2 z-[400] flex gap-2">
-      <input id="destination-input" type="text" placeholder="Search destination (e.g., Khadki, MG Road)..." class="flex-1 bg-black/85 border border-neutral-700 px-3 py-2.5 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-2xl backdrop-blur-md" onkeydown="if(event.key==='Enter') searchDestination()" />
-      <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3.5 py-2.5 rounded-xl active:scale-95 transition-transform shadow-lg">
+    <!-- High Z-Index Floating Destination Search Bar -->
+    <div class="absolute top-3 inset-x-3 z-[1000] flex gap-2">
+      <input id="destination-input" type="text" placeholder="Search destination (Khadki, Pune Station)..." class="flex-1 bg-black/90 border border-neutral-700 px-3.5 py-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-2xl backdrop-blur-md" onkeydown="if(event.key==='Enter') searchDestination()" />
+      <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-4 py-3 rounded-xl active:scale-95 transition-transform shadow-xl">
         GO
       </button>
     </div>
 
-    <!-- Active Route Telemetry Banner (Distance & ETA) -->
-    <div id="map-route-bar" class="hidden absolute top-14 inset-x-2 z-[400] bg-neutral-900/90 border border-[#FF6600]/40 rounded-xl p-2.5 flex justify-between items-center text-xs font-mono backdrop-blur-md shadow-xl">
+    <!-- Active Route Telemetry Banner -->
+    <div id="map-route-bar" class="hidden absolute top-16 inset-x-3 z-[1000] bg-black/90 border border-[#FF6600]/40 rounded-xl p-3 flex justify-between items-center text-xs font-mono backdrop-blur-md shadow-2xl">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
         <span id="route-total-dist" class="text-white font-bold text-sm">-- KM</span>
-        <span class="text-neutral-400">|</span>
+        <span class="text-neutral-500">|</span>
         <span id="route-total-time" class="text-[#FF6600] font-bold">-- MIN</span>
       </div>
-      <button onclick="clearActiveRoute()" class="text-xs bg-red-950/70 text-red-300 border border-red-700/50 px-2 py-1 rounded-md active:scale-95">Cancel</button>
+      <button onclick="clearActiveRoute()" class="text-xs bg-red-950/80 text-red-300 border border-red-700/60 px-3 py-1 rounded-md active:scale-95">Cancel</button>
     </div>
 
     <!-- Map Canvas -->
     <div id="map" class="w-full h-full osm-dark-tiles"></div>
 
     <!-- Floating Speed Pill -->
-    <div class="absolute bottom-16 left-4 z-[400] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-2xl">
+    <div class="absolute bottom-20 left-3 z-[500] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-2xl">
       <span id="map-speed" class="text-4xl font-extrabold text-white">0</span>
       <span class="text-xs font-bold text-[#FF6600]">KM/H</span>
     </div>
 
     <!-- Bottom Controls -->
-    <div class="absolute bottom-2 inset-x-2 flex justify-between gap-2 z-[400]">
-      <button onclick="centerBike()" class="flex-1 bg-neutral-900/95 border border-neutral-700 py-3 rounded-xl text-xs font-bold text-white shadow-xl active:scale-95">
-        Target Bike
+    <div class="absolute bottom-3 inset-x-3 flex justify-between gap-2 z-[500]">
+      <button id="target-bike-btn" onclick="centerBike()" class="flex-1 bg-neutral-900/95 border border-[#FF6600] py-3.5 rounded-xl text-xs font-bold text-[#FF6600] shadow-2xl active:scale-95 transition-all">
+        TARGET BIKE (LOCKED)
       </button>
-      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">+</button>
-      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">-</button>
+      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3.5 rounded-xl text-base font-bold text-white active:scale-95 shadow-xl">+</button>
+      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3.5 rounded-xl text-base font-bold text-white active:scale-95 shadow-xl">-</button>
     </div>
   </div>
 
@@ -331,6 +326,7 @@
       lastLon: 73.8567,
       isMapVisible: false,
       mapInitialized: false,
+      autoFollowBike: true, // Auto-center lock state
       gpsWatchId: null,
       activeRoute: null,
       routeSteps: [],
@@ -377,7 +373,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ==================== LEAFLET MAP & ROUTING ====================
+    // ==================== LEAFLET MAP & USER PAN DETECTION ====================
     let map = null;
     let bikeMarker = null;
     let destinationMarker = null;
@@ -391,11 +387,16 @@
 
       const bikeIcon = L.divIcon({
         className: 'custom-bike-marker',
-        html: `<div style="width: 20px; height: 20px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 15px #FF6600;"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
+        html: `<div style="width: 22px; height: 22px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 15px #FF6600;"></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
       });
       bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
+
+      // Disable auto-follow when user manually drags or touches the map
+      map.on('dragstart', () => {
+        setAutoFollow(false);
+      });
 
       // Tap on map to set Destination
       map.on('click', (e) => {
@@ -403,6 +404,20 @@
       });
 
       state.mapInitialized = true;
+    }
+
+    function setAutoFollow(active) {
+      state.autoFollowBike = active;
+      const btn = document.getElementById('target-bike-btn');
+      if (active) {
+        btn.textContent = "TARGET BIKE (LOCKED)";
+        btn.classList.replace('text-neutral-400', 'text-[#FF6600]');
+        btn.classList.replace('border-neutral-700', 'border-[#FF6600]');
+      } else {
+        btn.textContent = "FREE PAN (TAP TO RE-CENTER)";
+        btn.classList.replace('text-[#FF6600]', 'text-neutral-400');
+        btn.classList.replace('border-[#FF6600]', 'border-neutral-700');
+      }
     }
 
     function toggleView() {
@@ -420,9 +435,11 @@
         setTimeout(() => {
           if (map) {
             map.invalidateSize(true);
-            if (state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16, { animate: false });
+            if (state.autoFollowBike && state.lastLat && state.lastLon) {
+              map.setView([state.lastLat, state.lastLon], 16, { animate: false });
+            }
           }
-        }, 100);
+        }, 120);
       } else {
         cockpit.classList.remove('hidden');
         mapView.classList.add('hidden');
@@ -431,15 +448,22 @@
     }
 
     function centerBike() {
-      if (map && state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16);
+      setAutoFollow(true);
+      if (map && state.lastLat && state.lastLon) {
+        map.setView([state.lastLat, state.lastLon], 16, { animate: true });
+      }
     }
+
     function zoomInMap() { if (map) map.zoomIn(); }
     function zoomOutMap() { if (map) map.zoomOut(); }
 
-    // ==================== DESTINATION GEOCODING & OSRM ROUTE ENGINE ====================
+    // ==================== OSRM ROUTE ENGINE ====================
     async function searchDestination() {
-      const query = document.getElementById('destination-input').value.trim();
+      const input = document.getElementById('destination-input');
+      const query = input.value.trim();
       if (!query) return;
+
+      input.blur(); // Hide soft keyboard on mobile
 
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
@@ -478,34 +502,33 @@
         state.routeSteps = route.legs[0].steps;
         state.currentStepIndex = 0;
 
-        // Draw Polyline on Map
         if (routePolyline && map) map.removeLayer(routePolyline);
         if (destinationMarker && map) map.removeLayer(destinationMarker);
 
         const latLngs = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-        routePolyline = L.polyline(latLngs, { color: '#FF6600', weight: 6, opacity: 0.9 }).addTo(map);
+        routePolyline = L.polyline(latLngs, { color: '#FF6600', weight: 6, opacity: 0.95 }).addTo(map);
 
         const destIcon = L.divIcon({
           className: 'dest-marker',
-          html: `<div style="width:24px;height:24px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;font-size:12px;box-shadow:0 0 15px #10b981;">🏁</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+          html: `<div style="width:26px;height:26px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;font-size:13px;box-shadow:0 0 15px #10b981;">🏁</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
         });
         destinationMarker = L.marker([destLat, destLon], { icon: destIcon }).addTo(map);
 
-        map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+        // Frame the route on map view
+        map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
+        setAutoFollow(false); // Let rider inspect the full route first
 
-        // Update Map Route Header
         document.getElementById('map-route-bar').classList.remove('hidden');
         document.getElementById('route-total-dist').textContent = (route.distance / 1000).toFixed(1) + " KM";
         document.getElementById('route-total-time').textContent = Math.round(route.duration / 60) + " MIN";
 
-        // Enable HUD Turn Card
         document.getElementById('hud-nav-card').classList.remove('hidden');
         updateNavigationHUD();
 
       } catch (err) {
-        alert("Failed to load navigation steps. Please try again.");
+        alert("Failed to load navigation steps. Please check internet connection.");
       }
     }
 
@@ -519,25 +542,43 @@
       state.currentStepIndex = 0;
       document.getElementById('map-route-bar').classList.add('hidden');
       document.getElementById('hud-nav-card').classList.add('hidden');
+      setAutoFollow(true);
     }
 
-    // ==================== ANDROID AUTO HUD TURN ICONS & DIRECTION LOGIC ====================
+    // ==================== CORRECT FORWARD-VECTOR NAVIGATION ICONS ====================
+    // Vector enters from bottom (traveling forward) and bends in the target direction
     function getTurnSvg(type, modifier) {
-      // Return high-contrast KTM Orange SVG icons
       if (type === 'arrive') {
-        return `<svg class="w-8 h-8 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
+        return `<svg class="w-9 h-9 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
       }
-      if (modifier && modifier.includes('left')) {
-        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M9 19l1.41-1.41L6.83 14H16c2.76 0 5-2.24 5-5V4h-2v5c0 1.65-1.35 3-3 3H6.83l3.58-3.59L9 7l-6 6 6 6z"/></svg>`;
+
+      const mod = (modifier || '').toLowerCase();
+
+      // Sharp Left (forward from bottom, sharp hook left)
+      if (mod.includes('sharp left')) {
+        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M6 13l4-4v3h6a3 3 0 0 1 3 3v6h-3v-6a1 1 0 0 0-1-1H10v3L6 13z"/></svg>`;
       }
-      if (modifier && modifier.includes('right')) {
-        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M15 19l-1.41-1.41L17.17 14H8c-2.76 0-5-2.24-5-5V4h2v5c0 1.65 1.35 3 3 3h9.17l-3.58-3.59L15 7l6 6-6 6z"/></svg>`;
+      // Standard Left Turn (Enter bottom, turn 90 deg left)
+      if (mod.includes('left')) {
+        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M9 6l-6 6 6 6 1.41-1.41L6.83 13H15a4 4 0 0 1 4 4v4h3v-4a7 7 0 0 0-7-7H6.83l3.58-3.59L9 6z"/></svg>`;
       }
-      if (modifier && modifier.includes('uturn')) {
-        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 9v7a4 4 0 0 0 8 0V7.83l2.59 2.58L18 9l-5-5-5 5 1.41 1.41L12 7.83V16a2 2 0 0 1-4 0V9H6z"/></svg>`;
+
+      // Sharp Right (forward from bottom, sharp hook right)
+      if (mod.includes('sharp right')) {
+        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M18 13l-4-4v3H8a3 3 0 0 0-3 3v6h3v-6a1 1 0 0 1 1-1h5v3l4-4z"/></svg>`;
       }
-      // Straight / Continue
-      return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12 4l-5 5 1.41 1.41L11 7.83V20h2V7.83l2.59 2.58L17 9l-5-5z"/></svg>`;
+      // Standard Right Turn (Enter bottom, turn 90 deg right)
+      if (mod.includes('right')) {
+        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M15 6l6 6-6 6-1.41-1.41L17.17 13H9a4 4 0 0 0-4 4v4H2v-4a7 7 0 0 1 7-7h8.17l-3.58-3.59L15 6z"/></svg>`;
+      }
+
+      // U-Turn (Enter bottom right, loop 180 deg to the left)
+      if (mod.includes('uturn')) {
+        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M7 11V7a5 5 0 0 1 10 0v14h-3V7a2 2 0 0 0-4 0v4h2.5L9 15.5 5.5 11H7z"/></svg>`;
+      }
+
+      // Straight ahead (Enter bottom, shoot straight up)
+      return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M12 2l-6 6 1.41 1.41L11 5.83V22h2V5.83l3.59 3.58L18 8l-6-6z"/></svg>`;
     }
 
     function updateNavigationHUD() {
@@ -547,32 +588,28 @@
       if (!currentStep) return;
 
       const maneuver = currentStep.maneuver;
-      const stepCoord = maneuver.location; // [lon, lat]
+      const stepCoord = maneuver.location;
       const distToStepKm = calcDistance(state.lastLat, state.lastLon, stepCoord[1], stepCoord[0]);
       const distMeters = Math.round(distToStepKm * 1000);
 
-      // If within 30 meters of step, advance to next step
+      // Advance to next instruction if within 30 meters
       if (distMeters < 30 && state.currentStepIndex < state.routeSteps.length - 1) {
         state.currentStepIndex++;
         updateNavigationHUD();
         return;
       }
 
-      // Display distance
       const distDisplay = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + " KM" : distMeters + " M";
       document.getElementById('hud-turn-dist').textContent = distDisplay;
 
-      // Instruction text
-      let roadName = currentStep.name ? `onto ${currentStep.name}` : "";
-      let instruction = `${maneuver.type} ${maneuver.modifier || ''} ${roadName}`.trim();
-      if (maneuver.type === 'arrive') instruction = "Arriving at Destination";
+      let roadName = currentStep.name ? `ONTO ${currentStep.name}` : "";
+      let instruction = `${maneuver.type} ${maneuver.modifier || ''} ${roadName}`.replace(/_/g, ' ').trim();
+      if (maneuver.type === 'arrive') instruction = "ARRIVING AT DESTINATION";
       document.getElementById('hud-turn-instruction').textContent = instruction.toUpperCase();
 
-      // Render Icon
       document.getElementById('hud-turn-icon').innerHTML = getTurnSvg(maneuver.type, maneuver.modifier);
     }
 
-    // Shift Light Updater
     function updateShiftLights(currentSpeed) {
       leds.forEach(led => {
         led.className = 'shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100';
@@ -628,10 +665,12 @@
 
       if (bikeMarker) {
         bikeMarker.setLatLng([lat, lon]);
-        if (state.isMapVisible && map) map.panTo([lat, lon], { animate: true });
+        // Only pan if Auto-Follow is active (prevents fighting rider's fingers during manual pan)
+        if (state.autoFollowBike && state.isMapVisible && map) {
+          map.panTo([lat, lon], { animate: true });
+        }
       }
 
-      // Live update turn-by-turn navigation distance
       if (state.routeSteps && state.routeSteps.length > 0) {
         updateNavigationHUD();
       }
