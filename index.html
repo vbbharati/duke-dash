@@ -34,9 +34,8 @@
       border: 1px solid rgba(255, 102, 0, 0.25);
       background: linear-gradient(180deg, rgba(20,22,30,0.85) 0%, rgba(10,11,16,0.95) 100%);
     }
-    .dark-map .leaflet-tile {
-      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
-    }
+
+    /* Shift Light States */
     .led-warn { background-color: #ffaa00 !important; box-shadow: 0 0 10px #ffaa00; }
     .led-pre-shift { background-color: #ff3300 !important; box-shadow: 0 0 12px #ff3300; }
     .led-flash { background-color: #ffffff !important; box-shadow: 0 0 20px #ffffff, 0 0 35px #ff0000; }
@@ -47,9 +46,16 @@
     }
     .shift-strobe { animation: redline-strobe 0.12s infinite; }
     input[type=range] { accent-color: #FF6600; }
+
+    /* Ensure Leaflet container handles gestures smoothly on touchscreens */
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #111217;
+    }
   </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-3 relative">
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-3 relative bg-[#07080c]">
 
   <!-- TOP SHIFT LIGHT BAR -->
   <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1.5 px-1 pt-0.5 pb-2 transition-all z-20">
@@ -63,12 +69,12 @@
     <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
   </div>
 
-  <!-- TOP BAR: Status, Fullscreen, Settings & Clock -->
+  <!-- TOP BAR: Status, Mode Switcher, Fullscreen, Settings & Clock -->
   <header class="flex justify-between items-center text-xs tracking-wider text-neutral-400 font-mono z-20">
-    <!-- Clickable GPS Button to manually force permission prompt -->
-    <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform" title="Tap to reconnect GPS">
+    <!-- Clickable GPS Button -->
+    <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform" title="GPS Status">
       <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-      <span id="gps-status" class="text-[10px] font-bold text-neutral-200">TAP TO ACTIVATE GPS</span>
+      <span id="gps-status" class="text-[10px] font-bold text-neutral-200">ACQUIRING GPS</span>
     </button>
     
     <div class="flex items-center gap-2">
@@ -167,15 +173,18 @@
     </section>
   </div>
 
-  <!-- ==================== VIEW 2: MAP VIEW ==================== -->
-  <div id="map-view" class="hidden absolute inset-0 top-14 z-10 flex flex-col bg-neutral-950">
-    <div id="map" class="w-full flex-1 dark-map"></div>
+  <!-- ==================== VIEW 2: MAP VIEW (Leaflet Fix Applied) ==================== -->
+  <div id="map-view" class="hidden absolute inset-x-0 top-14 bottom-0 z-10 flex flex-col bg-neutral-950">
+    <!-- Map Canvas with explicit dimension guarantee -->
+    <div id="map" class="w-full flex-1 min-h-[300px]"></div>
 
+    <!-- Floating Speed Pill while in Map View -->
     <div class="absolute bottom-16 left-4 z-[500] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-lg">
       <span id="map-speed" class="text-4xl font-extrabold text-white">0</span>
       <span class="text-xs font-bold text-[#FF6600]">KM/H</span>
     </div>
 
+    <!-- Map Controls Bar -->
     <div class="p-3 bg-neutral-900 border-t border-neutral-800 flex justify-between items-center z-[500]">
       <button onclick="centerBike()" class="text-xs bg-neutral-800 border border-neutral-700 px-4 py-2.5 rounded-lg text-neutral-200 active:scale-95">
         Target Bike
@@ -209,20 +218,20 @@
       </div>
 
       <div class="grid grid-cols-3 gap-2 font-mono text-xl font-bold">
-        <button onclick="tapKey('1')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">1</button>
-        <button onclick="tapKey('2')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">2</button>
-        <button onclick="tapKey('3')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">3</button>
+        <button onclick="tapKey('1')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">1</button>
+        <button onclick="tapKey('2')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">2</button>
+        <button onclick="tapKey('3')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">3</button>
 
-        <button onclick="tapKey('4')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">4</button>
-        <button onclick="tapKey('5')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">5</button>
-        <button onclick="tapKey('6')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">6</button>
+        <button onclick="tapKey('4')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">4</button>
+        <button onclick="tapKey('5')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">5</button>
+        <button onclick="tapKey('6')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">6</button>
 
-        <button onclick="tapKey('7')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">7</button>
-        <button onclick="tapKey('8')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">8</button>
-        <button onclick="tapKey('9')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">9</button>
+        <button onclick="tapKey('7')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">7</button>
+        <button onclick="tapKey('8')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">8</button>
+        <button onclick="tapKey('9')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">9</button>
 
-        <button onclick="tapKey('.')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">.</button>
-        <button onclick="tapKey('0')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:scale-95">0</button>
+        <button onclick="tapKey('.')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">.</button>
+        <button onclick="tapKey('0')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">0</button>
         <button onclick="tapBackspace()" class="bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 text-red-400 py-3.5 rounded-2xl flex items-center justify-center active:scale-95">
           <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
         </button>
@@ -287,7 +296,7 @@
       tripDist: parseFloat(localStorage.getItem('trip_dist')) || 0,
       topSpeed: parseFloat(localStorage.getItem('top_speed')) || 0,
       fuelRemaining: parseFloat(localStorage.getItem('fuel_rem')) || 10.0,
-      lastLat: 18.5204,
+      lastLat: 18.5204, // Default fallback coordinates
       lastLon: 73.8567,
       isMapVisible: false,
       gpsWatchId: null
@@ -335,43 +344,68 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Leaflet Setup
-    const map = L.map('map', { zoomControl: false }).setView([state.lastLat, state.lastLon], 14);
-    const tileLayer = L.tileLayer.offline('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap'
+    // ==================== LEAFLET MAP INITIALIZATION ====================
+    const map = L.map('map', { 
+      zoomControl: false,
+      attributionControl: false
+    }).setView([state.lastLat, state.lastLon], 15);
+
+    // Reliable dark tiles (CartoDB Dark Matter)
+    const tileLayer = L.tileLayer.offline('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
     }).addTo(map);
 
     const bikeIcon = L.divIcon({
       className: 'custom-bike-marker',
-      html: `<div style="width: 16px; height: 16px; background-color: #FF6600; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px #FF6600;"></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
+      html: `<div style="width: 18px; height: 18px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 12px #FF6600;"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
     });
     const bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
 
+    // ==================== VIEW TOGGLE WITH RESIZE FIX ====================
     function toggleView() {
       state.isMapVisible = !state.isMapVisible;
-      document.getElementById('cockpit-view').classList.toggle('hidden', state.isMapVisible);
-      document.getElementById('map-view').classList.toggle('hidden', !state.isMapVisible);
-      document.getElementById('view-toggle-label').textContent = state.isMapVisible ? "SHOW HUD" : "SHOW MAP";
-      if (state.isMapVisible) setTimeout(() => map.invalidateSize(), 200);
+      const cockpit = document.getElementById('cockpit-view');
+      const mapView = document.getElementById('map-view');
+      const label = document.getElementById('view-toggle-label');
+
+      if (state.isMapVisible) {
+        cockpit.classList.add('hidden');
+        mapView.classList.remove('hidden');
+        label.textContent = "SHOW HUD";
+
+        // CRITICAL BUGFIX: Forces Leaflet to re-calculate bounding dimensions
+        setTimeout(() => {
+          map.invalidateSize(true);
+          if (state.lastLat && state.lastLon) {
+            map.setView([state.lastLat, state.lastLon], 16, { animate: false });
+          }
+        }, 150);
+      } else {
+        cockpit.classList.remove('hidden');
+        mapView.classList.add('hidden');
+        label.textContent = "SHOW MAP";
+      }
     }
 
     function centerBike() {
-      map.setView([state.lastLat, state.lastLon], 15);
+      if (state.lastLat && state.lastLon) {
+        map.setView([state.lastLat, state.lastLon], 16);
+      }
     }
 
     function saveCurrentAreaOffline() {
       const bounds = map.getBounds();
       const zoom = map.getZoom();
-      alert(`Saving tiles at zoom ${zoom}...`);
+      alert(`Saving route tiles around current view at zoom ${zoom}...`);
       const tiles = tileLayer.getTilesInBounds(bounds, zoom);
       let count = 0;
       tiles.forEach(tile => {
         tileLayer.saveTile(tile, () => {
           count++;
-          if (count === tiles.length) alert(`Saved ${count} tiles offline!`);
+          if (count === tiles.length) alert(`Saved ${count} map tiles offline!`);
         });
       });
     }
@@ -411,7 +445,7 @@
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // ==================== GPS ENGINE & FORCE TRIGGER ====================
+    // ==================== GPS ENGINE ====================
     function handleGpsSuccess(pos) {
       document.getElementById('gps-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
       document.getElementById('gps-status').textContent = "GPS LOCKED (" + Math.round(pos.coords.accuracy) + "m)";
@@ -432,8 +466,11 @@
         document.getElementById('top-speed').textContent = state.topSpeed;
       }
 
+      // Update bike marker and center map smoothly
       bikeMarker.setLatLng([lat, lon]);
-      if (state.isMapVisible) map.panTo([lat, lon], { animate: true });
+      if (state.isMapVisible) {
+        map.panTo([lat, lon], { animate: true });
+      }
 
       if (state.lastLat && state.lastLon) {
         const delta = calcDistance(state.lastLat, state.lastLon, lat, lon);
@@ -473,30 +510,20 @@
       }
     }
 
-    // Explicit User Tap to force permission prompt
     function forceGpsRequest() {
       document.getElementById('gps-status').textContent = "REQUESTING ACCESS...";
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           handleGpsSuccess(pos);
           startGpsWatcher();
-          alert("GPS Locked successfully!");
         },
         (err) => {
           handleGpsError(err);
-          if (err.code === 1) {
-            alert("Location Denied: Tap the lock/tune icon near the URL in Chrome and set Location to Allow.");
-          } else if (err.code === 2) {
-            alert("No Satellite Fix: Move outdoors away from concrete ceilings.");
-          } else {
-            alert("GPS Request Timed Out. Retrying...");
-          }
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
 
-    // Auto-attempt GPS start
     startGpsWatcher();
 
     function renderTelemetry() {
