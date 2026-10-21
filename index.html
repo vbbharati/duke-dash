@@ -45,7 +45,7 @@
     .shift-strobe { animation: redline-strobe 0.12s infinite; }
     input[type=range] { accent-color: #FF6600; }
 
-    /* Clean Dark Mode Inversion for OpenStreetMap */
+    /* Clean Dark Mode Map */
     .osm-dark-tiles .leaflet-tile {
       filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(200deg) saturate(0.2) !important;
     }
@@ -82,7 +82,7 @@
       </button>
 
       <!-- Fullscreen Toggle -->
-      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
+      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform" title="Toggle Fullscreen">
         <svg id="fs-enter-icon" class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
           <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
@@ -105,13 +105,31 @@
   <!-- ==================== VIEW 1: COCKPIT HUD ==================== -->
   <div id="cockpit-view" class="flex flex-col justify-between flex-1 my-1">
     
+    <!-- ANDROID AUTO STYLE TURN CARD (Hidden when no route active) -->
+    <div id="hud-nav-card" class="hidden hud-border border-[#FF6600]/40 rounded-2xl p-3 flex items-center gap-3.5 my-1 shadow-[0_0_20px_rgba(255,102,0,0.15)] transition-all">
+      <!-- Big Turn Icon Container -->
+      <div id="hud-turn-icon" class="w-12 h-12 rounded-xl bg-[#FF6600]/15 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0">
+        <!-- SVG injected dynamically -->
+      </div>
+      <!-- Instruction Text & Distance -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-baseline gap-2">
+          <span id="hud-turn-dist" class="text-2xl font-black text-white font-mono tracking-tight">--</span>
+          <span class="text-xs font-bold text-[#FF6600]">TO NEXT TURN</span>
+        </div>
+        <p id="hud-turn-instruction" class="text-xs text-neutral-300 font-semibold truncate">Follow highlighted route</p>
+      </div>
+      <!-- Quick Route Cancel Button -->
+      <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1.5 text-lg font-bold" title="End Navigation">&times;</button>
+    </div>
+
     <!-- SPEED HERO -->
     <main class="flex flex-col items-center justify-center my-auto">
       <div class="flex items-baseline justify-center">
         <span id="speed" class="text-[9.5rem] md:text-[12rem] font-extrabold text-white tracking-tighter leading-none drop-shadow-[0_0_35px_rgba(255,102,0,0.35)]">0</span>
         <span class="text-2xl md:text-3xl font-extrabold text-[#FF6600] ml-2">KM/H</span>
       </div>
-      <div class="flex gap-6 mt-2 text-xs tracking-widest text-neutral-400 font-mono">
+      <div class="flex gap-6 mt-1 text-xs tracking-widest text-neutral-400 font-mono">
         <div>MAX: <span id="top-speed" class="text-white font-bold">0</span> KM/H</div>
         <div>AVG: <span id="avg-speed" class="text-white font-bold">0</span> KM/H</div>
       </div>
@@ -167,9 +185,29 @@
     </section>
   </div>
 
-  <!-- ==================== VIEW 2: MAP VIEW (CLEAN LAYOUT) ==================== -->
+  <!-- ==================== VIEW 2: MAP VIEW WITH DESTINATION SEARCH ==================== -->
   <div id="map-view" class="hidden flex-1 flex flex-col relative my-2 rounded-2xl overflow-hidden border border-neutral-800 z-10">
-    <!-- Map Canvas with dark tile filter -->
+    
+    <!-- Top Destination Search Header -->
+    <div class="absolute top-2 inset-x-2 z-[400] flex gap-2">
+      <input id="destination-input" type="text" placeholder="Search destination (e.g., Khadki, MG Road)..." class="flex-1 bg-black/85 border border-neutral-700 px-3 py-2.5 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-2xl backdrop-blur-md" onkeydown="if(event.key==='Enter') searchDestination()" />
+      <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3.5 py-2.5 rounded-xl active:scale-95 transition-transform shadow-lg">
+        GO
+      </button>
+    </div>
+
+    <!-- Active Route Telemetry Banner (Distance & ETA) -->
+    <div id="map-route-bar" class="hidden absolute top-14 inset-x-2 z-[400] bg-neutral-900/90 border border-[#FF6600]/40 rounded-xl p-2.5 flex justify-between items-center text-xs font-mono backdrop-blur-md shadow-xl">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span id="route-total-dist" class="text-white font-bold text-sm">-- KM</span>
+        <span class="text-neutral-400">|</span>
+        <span id="route-total-time" class="text-[#FF6600] font-bold">-- MIN</span>
+      </div>
+      <button onclick="clearActiveRoute()" class="text-xs bg-red-950/70 text-red-300 border border-red-700/50 px-2 py-1 rounded-md active:scale-95">Cancel</button>
+    </div>
+
+    <!-- Map Canvas -->
     <div id="map" class="w-full h-full osm-dark-tiles"></div>
 
     <!-- Floating Speed Pill -->
@@ -178,17 +216,13 @@
       <span class="text-xs font-bold text-[#FF6600]">KM/H</span>
     </div>
 
-    <!-- Map Actions -->
+    <!-- Bottom Controls -->
     <div class="absolute bottom-2 inset-x-2 flex justify-between gap-2 z-[400]">
       <button onclick="centerBike()" class="flex-1 bg-neutral-900/95 border border-neutral-700 py-3 rounded-xl text-xs font-bold text-white shadow-xl active:scale-95">
         Target Bike
       </button>
-      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">
-        +
-      </button>
-      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">
-        -
-      </button>
+      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">+</button>
+      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3 rounded-xl text-sm font-bold text-white active:scale-95">-</button>
     </div>
   </div>
 
@@ -297,7 +331,10 @@
       lastLon: 73.8567,
       isMapVisible: false,
       mapInitialized: false,
-      gpsWatchId: null
+      gpsWatchId: null,
+      activeRoute: null,
+      routeSteps: [],
+      currentStepIndex: 0
     };
 
     const TANK_CAPACITY = 13.4;
@@ -310,9 +347,7 @@
     let wakeLockSentinel = null;
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
-        try {
-          wakeLockSentinel = await navigator.wakeLock.request('screen');
-        } catch (err) {}
+        try { wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch (err) {}
       }
     }
     document.addEventListener('visibilitychange', () => {
@@ -342,21 +377,17 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ==================== RELIABLE LEAFLET MAP ====================
+    // ==================== LEAFLET MAP & ROUTING ====================
     let map = null;
     let bikeMarker = null;
+    let destinationMarker = null;
+    let routePolyline = null;
 
     function initMap() {
       if (map) return;
-      map = L.map('map', { 
-        zoomControl: false,
-        attributionControl: false
-      }).setView([state.lastLat, state.lastLon], 16);
+      map = L.map('map', { zoomControl: false, attributionControl: false }).setView([state.lastLat, state.lastLon], 16);
 
-      // OpenStreetMap standard tile server
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-      }).addTo(map);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
       const bikeIcon = L.divIcon({
         className: 'custom-bike-marker',
@@ -365,6 +396,12 @@
         iconAnchor: [10, 10]
       });
       bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
+
+      // Tap on map to set Destination
+      map.on('click', (e) => {
+        calculateAndSetRoute(e.latlng.lat, e.latlng.lng, "Pinned Location");
+      });
+
       state.mapInitialized = true;
     }
 
@@ -380,14 +417,10 @@
         label.textContent = "SHOW HUD";
 
         initMap();
-
-        // Immediate + staggered resize trigger to prevent gray tiles
         setTimeout(() => {
           if (map) {
             map.invalidateSize(true);
-            if (state.lastLat && state.lastLon) {
-              map.setView([state.lastLat, state.lastLon], 16, { animate: false });
-            }
+            if (state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16, { animate: false });
           }
         }, 100);
       } else {
@@ -398,14 +431,148 @@
     }
 
     function centerBike() {
-      if (map && state.lastLat && state.lastLon) {
-        map.setView([state.lastLat, state.lastLon], 16);
-      }
+      if (map && state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16);
     }
-
     function zoomInMap() { if (map) map.zoomIn(); }
     function zoomOutMap() { if (map) map.zoomOut(); }
 
+    // ==================== DESTINATION GEOCODING & OSRM ROUTE ENGINE ====================
+    async function searchDestination() {
+      const query = document.getElementById('destination-input').value.trim();
+      if (!query) return;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const destLat = parseFloat(data[0].lat);
+          const destLon = parseFloat(data[0].lon);
+          calculateAndSetRoute(destLat, destLon, data[0].display_name);
+        } else {
+          alert("Location not found. Try entering a city or landmark name.");
+        }
+      } catch (err) {
+        alert("Search request failed. Please check internet connection.");
+      }
+    }
+
+    async function calculateAndSetRoute(destLat, destLon, label) {
+      if (!state.lastLat || !state.lastLon) {
+        alert("Waiting for GPS lock before calculating route...");
+        return;
+      }
+
+      const url = `https://router.project-osrm.org/route/v1/driving/${state.lastLon},${state.lastLat};${destLon},${destLat}?overview=full&geometries=geojson&steps=true`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+          alert("Could not compute route to destination.");
+          return;
+        }
+
+        const route = data.routes[0];
+        state.activeRoute = route;
+        state.routeSteps = route.legs[0].steps;
+        state.currentStepIndex = 0;
+
+        // Draw Polyline on Map
+        if (routePolyline && map) map.removeLayer(routePolyline);
+        if (destinationMarker && map) map.removeLayer(destinationMarker);
+
+        const latLngs = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        routePolyline = L.polyline(latLngs, { color: '#FF6600', weight: 6, opacity: 0.9 }).addTo(map);
+
+        const destIcon = L.divIcon({
+          className: 'dest-marker',
+          html: `<div style="width:24px;height:24px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;font-size:12px;box-shadow:0 0 15px #10b981;">🏁</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+        destinationMarker = L.marker([destLat, destLon], { icon: destIcon }).addTo(map);
+
+        map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
+
+        // Update Map Route Header
+        document.getElementById('map-route-bar').classList.remove('hidden');
+        document.getElementById('route-total-dist').textContent = (route.distance / 1000).toFixed(1) + " KM";
+        document.getElementById('route-total-time').textContent = Math.round(route.duration / 60) + " MIN";
+
+        // Enable HUD Turn Card
+        document.getElementById('hud-nav-card').classList.remove('hidden');
+        updateNavigationHUD();
+
+      } catch (err) {
+        alert("Failed to load navigation steps. Please try again.");
+      }
+    }
+
+    function clearActiveRoute() {
+      if (routePolyline && map) map.removeLayer(routePolyline);
+      if (destinationMarker && map) map.removeLayer(destinationMarker);
+      routePolyline = null;
+      destinationMarker = null;
+      state.activeRoute = null;
+      state.routeSteps = [];
+      state.currentStepIndex = 0;
+      document.getElementById('map-route-bar').classList.add('hidden');
+      document.getElementById('hud-nav-card').classList.add('hidden');
+    }
+
+    // ==================== ANDROID AUTO HUD TURN ICONS & DIRECTION LOGIC ====================
+    function getTurnSvg(type, modifier) {
+      // Return high-contrast KTM Orange SVG icons
+      if (type === 'arrive') {
+        return `<svg class="w-8 h-8 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
+      }
+      if (modifier && modifier.includes('left')) {
+        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M9 19l1.41-1.41L6.83 14H16c2.76 0 5-2.24 5-5V4h-2v5c0 1.65-1.35 3-3 3H6.83l3.58-3.59L9 7l-6 6 6 6z"/></svg>`;
+      }
+      if (modifier && modifier.includes('right')) {
+        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M15 19l-1.41-1.41L17.17 14H8c-2.76 0-5-2.24-5-5V4h2v5c0 1.65 1.35 3 3 3h9.17l-3.58-3.59L15 7l6 6-6 6z"/></svg>`;
+      }
+      if (modifier && modifier.includes('uturn')) {
+        return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M6 9v7a4 4 0 0 0 8 0V7.83l2.59 2.58L18 9l-5-5-5 5 1.41 1.41L12 7.83V16a2 2 0 0 1-4 0V9H6z"/></svg>`;
+      }
+      // Straight / Continue
+      return `<svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12 4l-5 5 1.41 1.41L11 7.83V20h2V7.83l2.59 2.58L17 9l-5-5z"/></svg>`;
+    }
+
+    function updateNavigationHUD() {
+      if (!state.routeSteps || state.routeSteps.length === 0) return;
+
+      const currentStep = state.routeSteps[state.currentStepIndex];
+      if (!currentStep) return;
+
+      const maneuver = currentStep.maneuver;
+      const stepCoord = maneuver.location; // [lon, lat]
+      const distToStepKm = calcDistance(state.lastLat, state.lastLon, stepCoord[1], stepCoord[0]);
+      const distMeters = Math.round(distToStepKm * 1000);
+
+      // If within 30 meters of step, advance to next step
+      if (distMeters < 30 && state.currentStepIndex < state.routeSteps.length - 1) {
+        state.currentStepIndex++;
+        updateNavigationHUD();
+        return;
+      }
+
+      // Display distance
+      const distDisplay = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + " KM" : distMeters + " M";
+      document.getElementById('hud-turn-dist').textContent = distDisplay;
+
+      // Instruction text
+      let roadName = currentStep.name ? `onto ${currentStep.name}` : "";
+      let instruction = `${maneuver.type} ${maneuver.modifier || ''} ${roadName}`.trim();
+      if (maneuver.type === 'arrive') instruction = "Arriving at Destination";
+      document.getElementById('hud-turn-instruction').textContent = instruction.toUpperCase();
+
+      // Render Icon
+      document.getElementById('hud-turn-icon').innerHTML = getTurnSvg(maneuver.type, maneuver.modifier);
+    }
+
+    // Shift Light Updater
     function updateShiftLights(currentSpeed) {
       leds.forEach(led => {
         led.className = 'shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100';
@@ -423,11 +590,8 @@
       }
 
       for (let i = 0; i < activeCount; i++) {
-        if (i >= leds.length - 2) {
-          leds[i].classList.add('led-pre-shift');
-        } else {
-          leds[i].classList.add('led-warn');
-        }
+        if (i >= leds.length - 2) leds[i].classList.add('led-pre-shift');
+        else leds[i].classList.add('led-warn');
       }
     }
 
@@ -464,9 +628,12 @@
 
       if (bikeMarker) {
         bikeMarker.setLatLng([lat, lon]);
-        if (state.isMapVisible && map) {
-          map.panTo([lat, lon], { animate: true });
-        }
+        if (state.isMapVisible && map) map.panTo([lat, lon], { animate: true });
+      }
+
+      // Live update turn-by-turn navigation distance
+      if (state.routeSteps && state.routeSteps.length > 0) {
+        updateNavigationHUD();
       }
 
       if (state.lastLat && state.lastLon) {
