@@ -1,0 +1,25 @@
+{
+  "name": "KTM Duke Smart Dash",
+  "short_name": "Duke Dash",
+  "description": "Smart GPS Odometer, Telemetry & Fuel HUD for KTM Duke 250",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07080c",
+  "theme_color": "#FF6600",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
