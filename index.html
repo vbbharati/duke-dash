@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KTM Duke Smart Dash - Landscape Fixed</title>
+  <title>KTM Duke Smart Dash - Bold Center Speed</title>
 
   <!-- PWA Manifest & Theme -->
   <link rel="manifest" href="manifest.json" />
@@ -19,7 +19,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800;900&family=Inter:wght@400;600;700&display=swap');
     
     body {
       font-family: 'Chakra Petch', sans-serif;
@@ -67,7 +67,7 @@
     <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
   </div>
 
-  <!-- STATUS HEADER (COMPACT FOR LANDSCAPE HEIGHT) -->
+  <!-- STATUS HEADER -->
   <header class="flex justify-between items-center text-[10px] text-neutral-400 font-mono z-40 px-1 py-0.5 flex-shrink-0">
     <div class="flex items-center gap-1.5">
       <button onclick="forceGpsRequest()" class="flex items-center gap-1 bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded active:scale-95">
@@ -89,55 +89,58 @@
     </div>
   </header>
 
-  <!-- ==================== MAIN SPLIT SCREEN (DYNAMIC ORIENTATION) ==================== -->
-  <!-- 'flex flex-col landscape:flex-row' handles landscape regardless of width breakpoints -->
+  <!-- ==================== MAIN SPLIT SCREEN ==================== -->
   <div class="flex-1 flex flex-col landscape:flex-row gap-1.5 my-1 min-h-0 overflow-hidden z-10">
 
-    <!-- LEFT CLUSTER: COCKPIT HUD -->
-    <div class="w-full landscape:w-[42%] flex flex-col justify-between hud-border rounded-xl p-2 md:p-3 shadow-xl relative min-h-0 overflow-hidden flex-shrink-0">
+    <!-- LEFT CLUSTER: CENTERED BOLD SPEEDOMETER & MINI GEAR BADGE -->
+    <div class="w-full landscape:w-[45%] flex flex-col justify-between hud-border rounded-xl p-2 md:p-3 shadow-xl relative min-h-0 overflow-hidden flex-shrink-0">
       
-      <!-- Top Cluster Details -->
+      <!-- Top Strip: Model & Lean Angle -->
       <div class="flex justify-between items-center text-[10px] font-mono flex-shrink-0">
-        <span class="text-[#FF6600] font-bold tracking-wider">DUKE 250 TFT</span>
+        <span class="text-[#FF6600] font-bold tracking-wider">DUKE 250 // TFT</span>
         <div class="flex items-center gap-1 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">
           <span class="text-neutral-400">LEAN:</span>
           <span id="lean-angle" class="text-cyan-400 font-bold">0°</span>
         </div>
       </div>
 
-      <!-- SPEED & GEAR HERO -->
-      <div class="flex items-center justify-around my-auto py-1 min-h-0">
-        <div class="flex flex-col items-center">
-          <div class="flex items-baseline">
-            <span id="speed" class="text-5xl landscape:text-6xl md:text-7xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_20px_rgba(255,102,0,0.3)]">0</span>
-            <span class="text-xs md:text-sm font-bold text-[#FF6600] ml-1">KM/H</span>
-          </div>
-          <div class="flex gap-2 text-[9px] font-mono text-neutral-400 mt-0.5">
-            <span>MAX: <b id="top-speed" class="text-white">0</b></span>
-            <span>TRIP: <b id="trip-dist" class="text-cyan-400">0.0</b></span>
+      <!-- CENTER HERO SPEEDOMETER WITH SMALL GEAR BADGE -->
+      <div class="flex-1 flex flex-col items-center justify-center relative my-auto py-1 min-h-0">
+        
+        <!-- Small Compact Gear Badge (Top-Right of Speedometer) -->
+        <div class="absolute top-0 right-2 flex items-center gap-1.5 bg-black/60 border border-neutral-800 px-2 py-1 rounded-lg backdrop-blur-sm">
+          <span class="text-[8px] font-mono text-neutral-400 uppercase font-bold">GEAR</span>
+          <div id="gear-box" class="w-6 h-6 rounded-md bg-neutral-900 border border-emerald-500/80 flex items-center justify-center">
+            <span id="gear-text" class="text-xs font-black text-emerald-400">N</span>
           </div>
         </div>
 
-        <div class="flex flex-col items-center">
-          <div id="gear-box" class="w-12 h-12 landscape:w-14 landscape:h-14 md:w-16 md:h-16 rounded-xl bg-neutral-900 border-2 border-emerald-500/70 flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.3)]">
-            <span id="gear-text" class="text-3xl landscape:text-4xl md:text-4xl font-black text-emerald-400">N</span>
-          </div>
-          <span class="text-[8px] font-mono text-neutral-400 mt-0.5 tracking-wider">GEAR</span>
+        <!-- Huge Centered Speedometer -->
+        <div class="flex items-baseline justify-center">
+          <span id="speed" class="text-7xl landscape:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_30px_rgba(255,102,0,0.35)]">0</span>
+          <span class="text-sm md:text-base font-black text-[#FF6600] ml-1.5">KM/H</span>
         </div>
+
+        <!-- Sub-Metrics under Speed -->
+        <div class="flex items-center gap-4 text-[9px] font-mono text-neutral-400 mt-1">
+          <div>MAX: <b id="top-speed" class="text-white font-bold">0</b> KM/H</div>
+          <div>TRIP: <b id="trip-dist" class="text-cyan-400 font-bold">0.0</b> KM</div>
+        </div>
+
       </div>
 
       <!-- RPM Bar -->
       <div class="space-y-0.5 flex-shrink-0">
         <div class="flex justify-between text-[9px] font-mono text-neutral-400">
           <span>RPM: <b id="rpm-val" class="text-white">0</b></span>
-          <span class="text-red-500 font-bold">REDLINE</span>
+          <span class="text-red-500 font-bold">10,500 REDLINE</span>
         </div>
         <div class="w-full bg-neutral-900 h-2 rounded-full overflow-hidden border border-neutral-800">
           <div id="rpm-fill" class="h-full bg-gradient-to-r from-cyan-500 via-[#FF6600] to-red-600 transition-all duration-100" style="width: 0%;"></div>
         </div>
       </div>
 
-      <!-- Compact Strip -->
+      <!-- Telemetry Strip -->
       <div class="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800/80 text-[9px] font-mono flex-shrink-0">
         <div class="flex justify-between">
           <span class="text-neutral-400">ODO:</span>
@@ -151,7 +154,7 @@
     </div>
 
     <!-- RIGHT INFOTAINMENT HUB -->
-    <div class="w-full landscape:w-[58%] flex-1 flex flex-col aa-glass rounded-xl overflow-hidden shadow-xl relative min-h-0">
+    <div class="w-full landscape:w-[55%] flex-1 flex flex-col aa-glass rounded-xl overflow-hidden shadow-xl relative min-h-0">
       
       <!-- TAB 1: NAVIGATION & MAPS -->
       <div id="tab-nav" class="flex-1 flex flex-col relative w-full h-full min-h-0">
@@ -281,7 +284,7 @@
 
   </div>
 
-  <!-- ==================== ANDROID AUTO APP DOCK (FIXED VISIBILITY) ==================== -->
+  <!-- ==================== ANDROID AUTO APP DOCK ==================== -->
   <nav class="w-full flex items-center justify-around py-1.5 px-2 aa-glass rounded-xl z-40 flex-shrink-0">
     <button onclick="switchTab('nav')" id="btn-tab-nav" class="flex flex-col items-center gap-0.5 text-[#FF6600] active:scale-95">
       <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
@@ -309,7 +312,7 @@
     </button>
   </nav>
 
-  <!-- ==================== REFUEL NUMERIC KEYPAD MODAL ==================== -->
+  <!-- ==================== REFUEL MODAL ==================== -->
   <div id="refuel-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3">
     <div class="hud-border w-full max-w-xs rounded-2xl p-4 shadow-2xl flex flex-col gap-2 border border-emerald-500/40">
       <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
@@ -417,7 +420,6 @@
       }
     }
 
-    // Handle screen rotation cleanly
     window.addEventListener('resize', () => {
       if (map) setTimeout(() => map.invalidateSize(), 200);
     });
@@ -606,8 +608,8 @@
 
       const engine = estimateKtmGearAndRpm(spd);
       document.getElementById('gear-text').textContent = engine.gear;
-      document.getElementById('gear-box').style.borderColor = engine.gear === 'N' ? 'rgba(16,185,129,0.7)' : 'rgba(255,102,0,0.8)';
-      document.getElementById('gear-text').className = engine.gear === 'N' ? 'text-3xl landscape:text-4xl md:text-4xl font-black text-emerald-400' : 'text-3xl landscape:text-4xl md:text-4xl font-black text-white';
+      document.getElementById('gear-box').style.borderColor = engine.gear === 'N' ? 'rgba(16,185,129,0.8)' : 'rgba(255,102,0,0.8)';
+      document.getElementById('gear-text').className = engine.gear === 'N' ? 'text-xs font-black text-emerald-400' : 'text-xs font-black text-white';
       document.getElementById('rpm-val').textContent = engine.rpm.toLocaleString();
       document.getElementById('rpm-fill').style.width = Math.min(100, (engine.rpm / 10500) * 100) + '%';
       updateShiftLights(engine.rpm);
