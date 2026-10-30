@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KTM Duke Smart Dash - Rotating Google Maps Style</title>
+  <title>KTM Duke Smart Dash</title>
 
   <!-- PWA Manifest & Theme -->
   <link rel="manifest" href="manifest.json" />
@@ -45,7 +45,7 @@
       background: #0a0b10 !important;
     }
 
-    /* Oversized rotating map viewport container to eliminate corner clipping */
+    /* Oversized wrapper allows full-canvas rotation without showing background margins */
     #map-rotator-wrapper {
       position: absolute;
       top: -50%;
@@ -110,7 +110,7 @@
     <!-- LEFT CLUSTER: BOLD CENTERED SPEEDOMETER & MINI GEAR BADGE -->
     <div class="w-full landscape:w-[45%] flex flex-col justify-between hud-border rounded-xl p-2 md:p-3 shadow-xl relative min-h-0 overflow-hidden flex-shrink-0">
       
-      <!-- Top Strip: Model & Heading Bearing -->
+      <!-- Top Strip: Model & Heading -->
       <div class="flex justify-between items-center text-[10px] font-mono flex-shrink-0">
         <span class="text-[#FF6600] font-bold tracking-wider">DUKE 250 // TFT</span>
         <div class="flex items-center gap-1 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">
@@ -129,7 +129,7 @@
           </div>
         </div>
 
-        <!-- Huge Centered Speed -->
+        <!-- Huge Centered Speedometer -->
         <div class="flex items-baseline justify-center">
           <span id="speed" class="text-7xl landscape:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_30px_rgba(255,102,0,0.35)]">0</span>
           <span class="text-sm md:text-base font-black text-[#FF6600] ml-1.5">KM/H</span>
@@ -152,7 +152,7 @@
         </div>
       </div>
 
-      <!-- Strip -->
+      <!-- Bottom Cluster Strip -->
       <div class="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800/80 text-[9px] font-mono flex-shrink-0">
         <div class="flex justify-between">
           <span class="text-neutral-400">ODO:</span>
@@ -168,10 +168,10 @@
     <!-- RIGHT INFOTAINMENT HUB -->
     <div class="w-full landscape:w-[55%] flex-1 flex flex-col aa-glass rounded-xl overflow-hidden shadow-xl relative min-h-0">
       
-      <!-- ================= TAB 1: DYNAMIC ROTATING GOOGLE-STYLE MAP ================= -->
+      <!-- ================= TAB 1: DYNAMIC ROTATING MAP ================= -->
       <div id="tab-nav" class="flex-1 relative w-full h-full min-h-0 overflow-hidden">
         
-        <!-- Search bar (Static above map, does not spin) -->
+        <!-- Search bar (Static above map) -->
         <div class="absolute top-1.5 inset-x-1.5 z-[500] flex gap-1">
           <input id="destination-input" type="text" placeholder="Navigate to location..." class="flex-1 bg-black/90 border border-neutral-700 px-2.5 py-1.5 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-md" onkeydown="if(event.key==='Enter') searchDestination()" />
           <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3 py-1.5 rounded-lg active:scale-95 shadow">
@@ -192,18 +192,25 @@
           <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1 text-sm font-bold">&times;</button>
         </div>
 
-        <!-- ROTATING MAP WRAPPER -->
+        <!-- ROTATING MAP CANVAS -->
         <div id="map-rotator-wrapper">
           <div id="map" class="osm-dark-tiles"></div>
         </div>
 
-        <!-- Map Navigation Mode & Center Toggle Controls (Static) -->
+        <!-- Dedicated On-Map Controls with Rotation Toggle Button -->
         <div class="absolute bottom-1.5 right-1.5 z-[500] flex items-center gap-1">
-          <button id="heading-mode-btn" onclick="toggleHeadingMode()" class="bg-neutral-900/90 border border-[#FF6600] text-[#FF6600] px-2 py-1 rounded text-[9px] font-bold active:scale-95">
-            HEADING UP
+          
+          <!-- Auto-Rotate Toggle Button -->
+          <button id="rotation-toggle-btn" onclick="toggleMapRotation()" class="flex items-center gap-1 bg-black/90 border border-[#FF6600] px-2 py-1 rounded text-[9px] font-bold shadow-xl active:scale-95 transition-all">
+            <svg id="compass-needle" class="w-3.5 h-3.5 fill-current text-[#FF6600] transition-transform duration-300" viewBox="0 0 24 24">
+              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>
+            <span id="rotation-btn-label" class="text-[#FF6600] font-mono">ROTATE: ON</span>
           </button>
-          <button onclick="centerBike()" class="bg-neutral-900/90 border border-neutral-700 text-neutral-200 px-2 py-1 rounded text-[9px] font-bold active:scale-95">
-            Recenter
+
+          <!-- Recenter & Zoom -->
+          <button onclick="centerBike()" class="bg-neutral-900/90 border border-neutral-700 text-neutral-200 px-2 py-1 rounded text-[9px] font-bold active:scale-95 font-mono">
+            CENTER
           </button>
           <button onclick="map.zoomIn()" class="bg-neutral-900/90 border border-neutral-700 text-white w-6 h-6 rounded text-xs font-bold active:scale-95">+</button>
           <button onclick="map.zoomOut()" class="bg-neutral-900/90 border border-neutral-700 text-white w-6 h-6 rounded text-xs font-bold active:scale-95">-</button>
@@ -331,7 +338,7 @@
     </button>
   </nav>
 
-  <!-- ==================== REFUEL NUMERIC KEYPAD MODAL ==================== -->
+  <!-- ==================== REFUEL MODAL ==================== -->
   <div id="refuel-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3">
     <div class="hud-border w-full max-w-xs rounded-2xl p-4 shadow-2xl flex flex-col gap-2 border border-emerald-500/40">
       <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
@@ -386,9 +393,8 @@
       activeRoute: null,
       routeSteps: [],
       currentStepIndex: 0,
-      headingMode: true, // true = Course-Up (rotating), false = North-Up
-      currentHeading: 0,
-      smoothedHeading: 0
+      isRotationEnabled: true, // Auto-rotate state
+      currentHeading: 0
     };
 
     const TANK_CAPACITY = 13.4;
@@ -446,7 +452,7 @@
       if (map) setTimeout(() => map.invalidateSize(), 200);
     });
 
-    // ==================== ROTATING MAP SETUP ====================
+    // ==================== ROTATING LEAFLET MAP ====================
     const map = L.map('map', { 
       zoomControl: false, 
       attributionControl: false 
@@ -454,7 +460,7 @@
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // Forward Direction Arrow Marker (Always points forward/up on rotating screen)
+    // Forward Direction Pointer
     const bikeIcon = L.divIcon({
       className: 'bike-pointer-marker',
       html: `
@@ -476,43 +482,61 @@
       calculateAndSetRoute(e.latlng.lat, e.latlng.lng);
     });
 
-    // Dynamic Map Rotation Engine
+    // ==================== ROTATION ENGINE & TOGGLE ====================
     function applyMapRotation(headingDeg) {
-      if (!state.headingMode) {
-        document.getElementById('map-rotator-wrapper').style.transform = `rotate(0deg)`;
+      const rotator = document.getElementById('map-rotator-wrapper');
+      const needle = document.getElementById('compass-needle');
+
+      if (!state.isRotationEnabled) {
+        if (rotator) rotator.style.transform = 'rotate(0deg)';
+        if (needle) needle.style.transform = 'rotate(0deg)';
         return;
       }
-      // Counter-rotate map container so bike forward direction is always UP
-      const rotateDeg = -headingDeg;
-      document.getElementById('map-rotator-wrapper').style.transform = `rotate(${rotateDeg}deg)`;
+
+      if (rotator) {
+        rotator.style.transform = `rotate(${-headingDeg}deg)`;
+      }
+      if (needle) {
+        needle.style.transform = `rotate(${headingDeg}deg)`;
+      }
     }
 
-    function toggleHeadingMode() {
-      state.headingMode = !state.headingMode;
-      const btn = document.getElementById('heading-mode-btn');
-      if (state.headingMode) {
-        btn.textContent = "HEADING UP";
-        btn.classList.replace('text-neutral-400', 'text-[#FF6600]');
-        btn.classList.replace('border-neutral-700', 'border-[#FF6600]');
+    function toggleMapRotation() {
+      state.isRotationEnabled = !state.isRotationEnabled;
+      const btn = document.getElementById('rotation-toggle-btn');
+      const label = document.getElementById('rotation-btn-label');
+      const needle = document.getElementById('compass-needle');
+
+      if (state.isRotationEnabled) {
+        btn.className = "flex items-center gap-1 bg-black/90 border border-[#FF6600] px-2 py-1 rounded text-[9px] font-bold shadow-xl active:scale-95 transition-all";
+        label.className = "text-[#FF6600] font-mono";
+        label.textContent = "ROTATE: ON";
+        needle.classList.replace('text-neutral-400', 'text-[#FF6600]');
         applyMapRotation(state.currentHeading);
       } else {
-        btn.textContent = "NORTH UP";
-        btn.classList.replace('text-[#FF6600]', 'text-neutral-400');
-        btn.classList.replace('border-[#FF6600]', 'border-neutral-700');
+        btn.className = "flex items-center gap-1 bg-neutral-900/90 border border-neutral-700 px-2 py-1 rounded text-[9px] font-bold shadow-xl active:scale-95 transition-all";
+        label.className = "text-neutral-400 font-mono";
+        label.textContent = "NORTH LOCKED";
+        needle.classList.replace('text-[#FF6600]', 'text-neutral-400');
         applyMapRotation(0);
       }
     }
 
-    // Hardware Compass Listener (Active when vehicle is stopped at signals)
+    function updateHeadingDisplay(hdg) {
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      const cardinal = dirs[Math.round(hdg / 45) % 8];
+      document.getElementById('hdg-val').textContent = `${Math.round(hdg)}° ${cardinal}`;
+    }
+
+    // Compass listener when stationary at traffic lights
     function initCompassListener() {
       const handleOrientation = (e) => {
         let compassHeading = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : null);
         const currentSpeed = parseFloat(document.getElementById('speed').textContent) || 0;
-        // Only use compass when stationary (< 4 km/h)
         if (currentSpeed < 4 && compassHeading !== null && !isNaN(compassHeading)) {
           state.currentHeading = Math.round(compassHeading);
           updateHeadingDisplay(state.currentHeading);
-          applyMapRotation(state.currentHeading);
+          if (state.isRotationEnabled) applyMapRotation(state.currentHeading);
         }
       };
 
@@ -524,16 +548,10 @@
     }
     initCompassListener();
 
-    function updateHeadingDisplay(hdg) {
-      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-      const cardinal = dirs[Math.round(hdg / 45) % 8];
-      document.getElementById('hdg-val').textContent = `${Math.round(hdg)}° ${cardinal}`;
-    }
-
     function centerBike() {
       if (state.lastLat && state.lastLon) {
         map.setView([state.lastLat, state.lastLon], 16, { animate: true });
-        applyMapRotation(state.currentHeading);
+        if (state.isRotationEnabled) applyMapRotation(state.currentHeading);
       }
     }
 
@@ -680,7 +698,7 @@
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // ==================== GPS ENGINE WITH COURSE ROTATION ====================
+    // ==================== GPS ENGINE ====================
     function handleGpsSuccess(pos) {
       document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
       document.getElementById('gps-status').textContent = `LOCKED (${Math.round(pos.coords.accuracy)}m)`;
@@ -697,14 +715,13 @@
         document.getElementById('top-speed').textContent = state.topSpeed;
       }
 
-      // Live Dynamic Heading Rotation (GPS ground track prioritized while moving)
+      // Rotate map on forward course
       if (spd >= 4 && pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
         state.currentHeading = Math.round(pos.coords.heading);
         updateHeadingDisplay(state.currentHeading);
-        applyMapRotation(state.currentHeading);
+        if (state.isRotationEnabled) applyMapRotation(state.currentHeading);
       }
 
-      // Smooth pan map in forward direction
       bikeMarker.setLatLng([lat, lon]);
       map.panTo([lat, lon], { animate: true, duration: 0.5 });
 
