@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KTM Duke Smart Dash</title>
+  <title>KTM Duke Smart Dash - Infotainment & Android Auto</title>
 
-  <!-- PWA Manifest & Theme -->
+  <!-- PWA Manifest & Android Theme -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#FF6600" />
+  <meta name="theme-color" content="#07080c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
@@ -19,7 +19,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600;700&display=swap');
     
     body {
       font-family: 'Chakra Petch', sans-serif;
@@ -27,206 +27,310 @@
       color: #e5e7eb;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: manipulation;
     }
     .hud-border {
-      border: 1px solid rgba(255, 102, 0, 0.25);
-      background: linear-gradient(180deg, rgba(20,22,30,0.85) 0%, rgba(10,11,16,0.95) 100%);
+      border: 1px solid rgba(255, 102, 0, 0.28);
+      background: linear-gradient(180deg, rgba(17,19,25,0.92) 0%, rgba(9,10,15,0.98) 100%);
     }
-
-    /* Shift Light States */
-    .led-warn { background-color: #ffaa00 !important; box-shadow: 0 0 10px #ffaa00; }
-    .led-pre-shift { background-color: #ff3300 !important; box-shadow: 0 0 12px #ff3300; }
-    .led-flash { background-color: #ffffff !important; box-shadow: 0 0 20px #ffffff, 0 0 35px #ff0000; }
-
-    @keyframes redline-strobe {
-      0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.9)); }
-      50% { opacity: 0.15; }
+    .aa-glass {
+      background: rgba(18, 20, 26, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .shift-strobe { animation: redline-strobe 0.12s infinite; }
-    input[type=range] { accent-color: #FF6600; }
-
-    /* OpenStreetMap Dark Styling */
     .osm-dark-tiles .leaflet-tile {
       filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(200deg) saturate(0.2) !important;
     }
     .leaflet-container {
       background: #0a0b10 !important;
     }
+    /* Shift bar flash */
+    @keyframes redline-strobe {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 18px rgba(255, 0, 0, 0.9)); }
+      50% { opacity: 0.15; }
+    }
+    .shift-strobe { animation: redline-strobe 0.12s infinite; }
   </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-3 relative bg-[#07080c]">
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-2 md:p-3 relative bg-[#07080c]">
 
   <!-- TOP SHIFT LIGHT BAR -->
-  <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1.5 px-1 pt-0.5 pb-2 transition-all z-40">
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
-    <div class="shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100"></div>
+  <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1 px-1 pt-0.5 pb-1 z-40">
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
+    <div class="shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
   </div>
 
-  <!-- TOP BAR -->
-  <header class="flex justify-between items-center text-xs tracking-wider text-neutral-400 font-mono z-40">
-    <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700/80 px-2.5 py-1.5 rounded-lg active:scale-95 transition-transform">
-      <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-      <span id="gps-status" class="text-[10px] font-bold text-neutral-200">ACQUIRING GPS</span>
-    </button>
-    
+  <!-- STATUS HEADER -->
+  <header class="flex justify-between items-center text-xs text-neutral-400 font-mono z-40 px-1 py-1">
     <div class="flex items-center gap-2">
-      <button onclick="toggleView()" class="bg-[#FF6600]/20 border border-[#FF6600] text-[#FF6600] font-bold px-3 py-1.5 rounded-md text-[11px] active:scale-95 transition-transform">
-        <span id="view-toggle-label">SHOW MAP</span>
+      <!-- GPS Status -->
+      <button onclick="forceGpsRequest()" class="flex items-center gap-1.5 bg-neutral-900 border border-neutral-700 px-2 py-1 rounded-md active:scale-95">
+        <span id="gps-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        <span id="gps-status" class="text-[10px] font-bold text-neutral-200">ACQUIRING GPS</span>
       </button>
 
-      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
-        <svg id="fs-enter-icon" class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
-          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-        </svg>
-        <svg id="fs-exit-icon" class="w-4 h-4 fill-current text-[#FF6600] hidden" viewBox="0 0 24 24">
-          <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-14v3h3v2h-5V5h2z"/>
-        </svg>
-      </button>
-
-      <button onclick="openSettingsModal()" class="bg-neutral-800 border border-neutral-700 text-neutral-300 p-1.5 rounded-md active:scale-95 transition-transform">
-        <svg class="w-4 h-4 fill-current text-[#FF6600]" viewBox="0 0 24 24">
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-        </svg>
-      </button>
+      <!-- Battery Telemetry -->
+      <div class="flex items-center gap-1 bg-neutral-900/90 border border-neutral-800 px-2 py-1 rounded-md text-[10px]">
+        <span class="text-neutral-400">BAT:</span>
+        <span id="bat-level" class="text-emerald-400 font-bold">--%</span>
+      </div>
     </div>
 
-    <div id="clock" class="text-neutral-200 font-bold">12:00 PM</div>
+    <!-- Clock & Fullscreen -->
+    <div class="flex items-center gap-2">
+      <div id="clock" class="text-neutral-200 font-bold text-xs font-mono">12:00 PM</div>
+      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-[#FF6600] p-1 rounded-md active:scale-95">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      </button>
+    </div>
   </header>
 
-  <!-- ==================== VIEW 1: COCKPIT HUD ==================== -->
-  <div id="cockpit-view" class="flex flex-col justify-between flex-1 my-1">
-    
-    <!-- ANDROID AUTO STYLE TURN CARD -->
-    <div id="hud-nav-card" class="hidden hud-border border-[#FF6600]/40 rounded-2xl p-3 flex items-center gap-3.5 my-1 shadow-[0_0_20px_rgba(255,102,0,0.15)]">
-      <!-- Genuine Bottom-To-Top Forward Vector Arrow -->
-      <div id="hud-turn-icon" class="w-14 h-14 rounded-xl bg-[#FF6600]/15 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0">
-        <!-- SVG will be injected here -->
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-baseline gap-2">
-          <span id="hud-turn-dist" class="text-2xl font-black text-white font-mono tracking-tight">--</span>
-          <span class="text-xs font-bold text-[#FF6600]">TO NEXT TURN</span>
+  <!-- ==================== MAIN INFOTAINMENT SPLIT SCREEN ==================== -->
+  <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 my-1 overflow-hidden z-10">
+
+    <!-- LEFT CLUSTER (4 Cols on Landscape / Full Top on Portrait): SPEED, RPM, GEAR -->
+    <div class="md:col-span-5 flex flex-col justify-between hud-border rounded-2xl p-3 shadow-2xl relative">
+      
+      <!-- Top Cluster Header: Mode & Lean -->
+      <div class="flex justify-between items-center text-xs font-mono">
+        <span class="text-[#FF6600] font-bold tracking-widest text-[11px]">DUKE 250 // TFT</span>
+        <div class="flex items-center gap-1 text-[11px] bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-800">
+          <span class="text-neutral-400">LEAN:</span>
+          <span id="lean-angle" class="text-cyan-400 font-bold">0°</span>
         </div>
-        <p id="hud-turn-instruction" class="text-xs text-neutral-300 font-semibold truncate">Follow highlighted route</p>
       </div>
-      <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1.5 text-xl font-bold">&times;</button>
+
+      <!-- SPEED & GEAR HERO -->
+      <div class="flex items-center justify-around my-auto py-2">
+        <!-- Huge Speed -->
+        <div class="flex flex-col items-center">
+          <div class="flex items-baseline">
+            <span id="speed" class="text-7xl md:text-8xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_25px_rgba(255,102,0,0.3)]">0</span>
+            <span class="text-lg md:text-xl font-bold text-[#FF6600] ml-1">KM/H</span>
+          </div>
+          <div class="flex gap-3 text-[10px] font-mono text-neutral-400 mt-1">
+            <span>MAX: <b id="top-speed" class="text-white">0</b></span>
+            <span>TRIP: <b id="trip-dist" class="text-cyan-400">0.0</b> KM</span>
+          </div>
+        </div>
+
+        <!-- Gear Box Indicator -->
+        <div class="flex flex-col items-center">
+          <div id="gear-box" class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-neutral-900 border-2 border-emerald-500/70 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+            <span id="gear-text" class="text-4xl md:text-5xl font-black text-emerald-400">N</span>
+          </div>
+          <span class="text-[9px] font-mono text-neutral-400 mt-1 uppercase tracking-wider">GEAR</span>
+        </div>
+      </div>
+
+      <!-- RPM Bar -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-[10px] font-mono text-neutral-400">
+          <span>RPM: <b id="rpm-val" class="text-white">0</b></span>
+          <span class="text-red-500 font-bold">REDLINE 10,500</span>
+        </div>
+        <div class="w-full bg-neutral-900 h-2.5 rounded-full overflow-hidden border border-neutral-800">
+          <div id="rpm-fill" class="h-full bg-gradient-to-r from-cyan-500 via-[#FF6600] to-red-600 transition-all duration-100" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Mini Telemetry Strip -->
+      <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-neutral-800/80 text-[10px] font-mono">
+        <div class="flex justify-between">
+          <span class="text-neutral-400">ODO:</span>
+          <span id="total-odo" class="text-white font-bold">0000.0 KM</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-neutral-400">RANGE:</span>
+          <span id="fuel-range" class="text-[#FF6600] font-bold">-- KM</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- SPEED HERO -->
-    <main class="flex flex-col items-center justify-center my-auto">
-      <div class="flex items-baseline justify-center">
-        <span id="speed" class="text-[9.5rem] md:text-[12rem] font-extrabold text-white tracking-tighter leading-none drop-shadow-[0_0_35px_rgba(255,102,0,0.35)]">0</span>
-        <span class="text-2xl md:text-3xl font-extrabold text-[#FF6600] ml-2">KM/H</span>
-      </div>
-      <div class="flex gap-6 mt-1 text-xs tracking-widest text-neutral-400 font-mono">
-        <div>MAX: <span id="top-speed" class="text-white font-bold">0</span> KM/H</div>
-        <div>AVG: <span id="avg-speed" class="text-white font-bold">0</span> KM/H</div>
-      </div>
-    </main>
+    <!-- RIGHT INFOTAINMENT HUB (7 Cols on Landscape): ANDROID AUTO TABS -->
+    <div class="md:col-span-7 flex flex-col aa-glass rounded-2xl overflow-hidden shadow-2xl relative">
+      
+      <!-- ================= TAB 1: NAVIGATION & MAPS ================= -->
+      <div id="tab-nav" class="flex-1 flex flex-col relative w-full h-full">
+        
+        <!-- Search Bar -->
+        <div class="absolute top-2 inset-x-2 z-[400] flex gap-1.5">
+          <input id="destination-input" type="text" placeholder="Navigate to (e.g. Khadki, Pune Station)..." class="flex-1 bg-black/85 border border-neutral-700 px-3 py-2 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-lg backdrop-blur-md" onkeydown="if(event.key==='Enter') searchDestination()" />
+          <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3.5 py-2 rounded-xl active:scale-95 shadow-md">
+            GO
+          </button>
+        </div>
 
-    <!-- LOWER SECTION -->
-    <section class="grid grid-cols-2 gap-3 mb-1">
-      <div class="flex flex-col gap-2">
-        <div class="hud-border rounded-xl p-2.5 flex flex-col justify-between">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] tracking-wider text-neutral-400">TOTAL ODO</span>
-            <button onclick="calibrateOdo()" class="text-[9px] text-[#FF6600] hover:underline">SET</button>
+        <!-- Android Auto Turn Header Card (Hidden until route active) -->
+        <div id="hud-nav-card" class="hidden absolute top-12 inset-x-2 z-[400] bg-black/90 border border-[#FF6600]/40 rounded-xl p-2.5 flex items-center gap-3 backdrop-blur-md shadow-2xl">
+          <div id="hud-turn-icon" class="w-10 h-10 rounded-lg bg-[#FF6600]/20 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0">
+            <!-- Vector arrow SVG -->
           </div>
-          <div class="flex items-baseline justify-between mt-0.5">
-            <span id="total-odo" class="text-xl font-bold text-white tracking-tight">0000.0</span>
-            <span class="text-[10px] text-[#FF6600]">KM</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2">
+              <span id="hud-turn-dist" class="text-lg font-black text-white font-mono">--</span>
+              <span class="text-[10px] font-bold text-[#FF6600]">TO TURN</span>
+            </div>
+            <p id="hud-turn-instruction" class="text-[11px] text-neutral-300 font-semibold truncate">Follow route</p>
+          </div>
+          <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1 text-base font-bold">&times;</button>
+        </div>
+
+        <!-- Leaflet Map Canvas -->
+        <div id="map" class="w-full flex-1 osm-dark-tiles"></div>
+
+        <!-- Map Quick Controls -->
+        <div class="absolute bottom-2 right-2 z-[400] flex items-center gap-1.5">
+          <button onclick="centerBike()" class="bg-neutral-900/90 border border-neutral-700 text-neutral-200 px-3 py-1.5 rounded-lg text-[10px] font-bold active:scale-95">
+            Recenter
+          </button>
+          <button onclick="map.zoomIn()" class="bg-neutral-900/90 border border-neutral-700 text-white w-7 h-7 rounded-lg text-sm font-bold active:scale-95">+</button>
+          <button onclick="map.zoomOut()" class="bg-neutral-900/90 border border-neutral-700 text-white w-7 h-7 rounded-lg text-sm font-bold active:scale-95">-</button>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: MEDIA PLAYER (SPOTIFY / AUDIO) ================= -->
+      <div id="tab-media" class="hidden flex-1 flex flex-col justify-between p-4 bg-gradient-to-b from-neutral-900 to-black">
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#FF6600] to-orange-400 flex items-center justify-center shadow-[0_0_20px_rgba(255,102,0,0.3)]">
+            <svg class="w-10 h-10 fill-black" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="text-[10px] font-mono text-[#FF6600] uppercase tracking-wider font-bold">MEDIA SESSION</span>
+            <h3 id="track-title" class="text-lg font-bold text-white truncate">Kandisa</h3>
+            <p id="track-artist" class="text-xs text-neutral-400 truncate">Indian Ocean</p>
           </div>
         </div>
 
-        <div class="hud-border rounded-xl p-2.5 flex flex-col justify-between">
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] tracking-wider text-neutral-400">TRIP A</span>
-            <button onclick="resetTrip()" class="text-[9px] bg-red-950/70 border border-red-700/60 text-red-300 px-1.5 py-0.5 rounded uppercase active:scale-95">RESET</button>
-          </div>
-          <div class="flex items-baseline justify-between mt-0.5">
-            <span id="trip-dist" class="text-xl font-bold text-cyan-400 tracking-tight">0.0</span>
-            <span class="text-[10px] text-cyan-400">KM</span>
-          </div>
+        <!-- Glove-Friendly Playback Controls -->
+        <div class="flex items-center justify-center gap-6 my-auto">
+          <button onclick="prevTrack()" class="p-4 rounded-2xl bg-neutral-800 border border-neutral-700 text-white active:scale-90 transition-transform">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button onclick="togglePlay()" class="p-6 rounded-3xl bg-[#FF6600] text-black active:scale-90 shadow-[0_0_25px_rgba(255,102,0,0.5)] transition-transform">
+            <svg id="play-icon" class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pause-icon" class="w-8 h-8 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button onclick="nextTrack()" class="p-4 rounded-2xl bg-neutral-800 border border-neutral-700 text-white active:scale-90 transition-transform">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+
+        <!-- Volume Slider -->
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 fill-neutral-400" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          <input type="range" min="0" max="100" value="85" class="flex-1 h-2 bg-neutral-800 rounded-lg accent-[#FF6600]" />
         </div>
       </div>
 
-      <div class="hud-border rounded-xl p-3 flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center text-[10px] font-mono text-neutral-400 mb-1">
-            <span>RANGE: <b id="fuel-range" class="text-white font-bold">--</b> KM</span>
-            <span id="fuel-mileage" class="text-[#FF6600]">30 KM/L</span>
+      <!-- ================= TAB 3: PHONE & COMMS ================= -->
+      <div id="tab-phone" class="hidden flex-1 flex flex-col justify-between p-4 bg-gradient-to-b from-neutral-900 to-black">
+        <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
+          <span class="text-xs font-mono text-emerald-400 uppercase font-bold tracking-wider">SPEED DIAL / COMMS</span>
+          <span class="text-[10px] text-neutral-500 font-mono">BLUETOOTH HELMET LINK</span>
+        </div>
+
+        <!-- Speed Dial Cards -->
+        <div class="grid grid-cols-2 gap-2 my-auto">
+          <a href="tel:112" class="p-3 bg-red-950/40 border border-red-700/50 rounded-xl flex items-center gap-3 active:scale-95">
+            <div class="w-8 h-8 rounded-lg bg-red-600/30 flex items-center justify-center text-red-400 font-bold">SOS</div>
+            <div>
+              <div class="text-xs font-bold text-white">Emergency</div>
+              <div class="text-[9px] text-neutral-400 font-mono">112</div>
+            </div>
+          </a>
+
+          <a href="tel:" class="p-3 bg-neutral-800/80 border border-neutral-700 rounded-xl flex items-center gap-3 active:scale-95">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600/30 flex items-center justify-center text-emerald-400 font-bold">🏠</div>
+            <div>
+              <div class="text-xs font-bold text-white">Home</div>
+              <div class="text-[9px] text-neutral-400 font-mono">Speed Dial</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="p-2.5 bg-neutral-900/90 border border-neutral-800 rounded-xl text-center text-xs text-neutral-400 font-mono">
+          Calls route directly to your helmet Bluetooth intercom.
+        </div>
+      </div>
+
+      <!-- ================= TAB 4: WEATHER & ENVIRONMENT ================= -->
+      <div id="tab-weather" class="hidden flex-1 flex flex-col justify-between p-4 bg-gradient-to-b from-neutral-900 to-black">
+        <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
+          <span class="text-xs font-mono text-cyan-400 uppercase font-bold tracking-wider">ENVIRONMENT TELEMETRY</span>
+          <span class="text-[10px] text-neutral-500 font-mono">OPEN-METEO LIVE</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 my-auto">
+          <div class="p-3 bg-neutral-800/60 rounded-xl border border-neutral-700/60">
+            <span class="text-[10px] font-mono text-neutral-400">TEMPERATURE</span>
+            <div class="text-3xl font-extrabold text-white mt-1"><span id="weather-temp">--</span>°C</div>
+            <span id="weather-desc" class="text-[10px] text-cyan-400">Fetching local data...</span>
           </div>
 
-          <div class="w-full bg-neutral-900 h-2.5 rounded-full overflow-hidden border border-neutral-800">
-            <div id="fuel-bar" class="bg-gradient-to-r from-red-600 via-[#FF6600] to-green-500 h-full w-[75%] transition-all duration-500"></div>
-          </div>
-          
-          <div class="text-[9px] text-neutral-400 font-mono mt-1 text-right">
-            <span id="fuel-remaining">EST: 10.0L / 13.4L</span>
+          <div class="p-3 bg-neutral-800/60 rounded-xl border border-neutral-700/60">
+            <span class="text-[10px] font-mono text-neutral-400">WIND SPEED</span>
+            <div class="text-3xl font-extrabold text-white mt-1"><span id="weather-wind">--</span> <span class="text-xs text-neutral-400">km/h</span></div>
+            <span class="text-[10px] text-neutral-400">Ground velocity</span>
           </div>
         </div>
 
-        <button onclick="openKeypadModal()" class="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-extrabold text-sm py-3.5 px-4 rounded-xl tracking-wider active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 transition-all">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          REFUEL
-        </button>
+        <div class="flex justify-between items-center text-xs font-mono text-neutral-400 px-1">
+          <span>ALTITUDE: <b id="gps-alt" class="text-white">--</b> M</span>
+          <span>HUMIDITY: <b id="weather-humidity" class="text-cyan-400">--%</b></span>
+        </div>
       </div>
-    </section>
+
+    </div>
+
   </div>
 
-  <!-- ==================== VIEW 2: MAP VIEW ==================== -->
-  <div id="map-view" class="hidden flex-1 flex flex-col relative my-2 rounded-2xl overflow-hidden border border-neutral-800 z-10">
-    
-    <!-- High Z-Index Floating Destination Search Bar -->
-    <div class="absolute top-3 inset-x-3 z-[1000] flex gap-2">
-      <input id="destination-input" type="text" placeholder="Search destination (Khadki, Pune Station)..." class="flex-1 bg-black/90 border border-neutral-700 px-3.5 py-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-2xl backdrop-blur-md" onkeydown="if(event.key==='Enter') searchDestination()" />
-      <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-4 py-3 rounded-xl active:scale-95 transition-transform shadow-xl">
-        GO
-      </button>
-    </div>
+  <!-- ==================== ANDROID AUTO APP DOCK (BOTTOM SWITCHER) ==================== -->
+  <nav class="w-full flex items-center justify-around py-2 px-3 aa-glass rounded-2xl z-40">
+    <!-- Maps -->
+    <button onclick="switchTab('nav')" id="btn-tab-nav" class="flex flex-col items-center gap-1 text-[#FF6600] active:scale-95 transition-colors">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+      <span class="text-[9px] font-bold tracking-wider">MAPS</span>
+    </button>
 
-    <!-- Active Route Telemetry Banner -->
-    <div id="map-route-bar" class="hidden absolute top-16 inset-x-3 z-[1000] bg-black/90 border border-[#FF6600]/40 rounded-xl p-3 flex justify-between items-center text-xs font-mono backdrop-blur-md shadow-2xl">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-        <span id="route-total-dist" class="text-white font-bold text-sm">-- KM</span>
-        <span class="text-neutral-500">|</span>
-        <span id="route-total-time" class="text-[#FF6600] font-bold">-- MIN</span>
-      </div>
-      <button onclick="clearActiveRoute()" class="text-xs bg-red-950/80 text-red-300 border border-red-700/60 px-3 py-1 rounded-md active:scale-95">Cancel</button>
-    </div>
+    <!-- Music -->
+    <button onclick="switchTab('media')" id="btn-tab-media" class="flex flex-col items-center gap-1 text-neutral-400 hover:text-white active:scale-95 transition-colors">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      <span class="text-[9px] font-bold tracking-wider">MUSIC</span>
+    </button>
 
-    <!-- Map Canvas -->
-    <div id="map" class="w-full h-full osm-dark-tiles"></div>
+    <!-- Phone -->
+    <button onclick="switchTab('phone')" id="btn-tab-phone" class="flex flex-col items-center gap-1 text-neutral-400 hover:text-white active:scale-95 transition-colors">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      <span class="text-[9px] font-bold tracking-wider">PHONE</span>
+    </button>
 
-    <!-- Floating Speed Pill -->
-    <div class="absolute bottom-20 left-3 z-[500] hud-border rounded-xl px-4 py-2 flex items-baseline gap-2 shadow-2xl">
-      <span id="map-speed" class="text-4xl font-extrabold text-white">0</span>
-      <span class="text-xs font-bold text-[#FF6600]">KM/H</span>
-    </div>
+    <!-- Weather -->
+    <button onclick="switchTab('weather')" id="btn-tab-weather" class="flex flex-col items-center gap-1 text-neutral-400 hover:text-white active:scale-95 transition-colors">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+      <span class="text-[9px] font-bold tracking-wider">WEATHER</span>
+    </button>
 
-    <!-- Bottom Controls -->
-    <div class="absolute bottom-3 inset-x-3 flex justify-between gap-2 z-[500]">
-      <button id="target-bike-btn" onclick="centerBike()" class="flex-1 bg-neutral-900/95 border border-[#FF6600] py-3.5 rounded-xl text-xs font-bold text-[#FF6600] shadow-2xl active:scale-95 transition-all">
-        TARGET BIKE (LOCKED)
-      </button>
-      <button onclick="zoomInMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3.5 rounded-xl text-base font-bold text-white active:scale-95 shadow-xl">+</button>
-      <button onclick="zoomOutMap()" class="bg-neutral-900/95 border border-neutral-700 px-4 py-3.5 rounded-xl text-base font-bold text-white active:scale-95 shadow-xl">-</button>
-    </div>
-  </div>
+    <!-- Refuel Action -->
+    <button onclick="openRefuelModal()" class="flex flex-col items-center gap-1 text-emerald-400 active:scale-95">
+      <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span class="text-[9px] font-bold tracking-wider">REFUEL</span>
+    </button>
+  </nav>
 
-  <!-- ==================== NUMERIC KEYPAD REFUEL MODAL ==================== -->
+  <!-- ==================== REFUEL NUMERIC KEYPAD MODAL ==================== -->
   <div id="refuel-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-3">
     <div class="hud-border w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col gap-3 border border-emerald-500/40">
       <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
         <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase">LOG PETROL INTAKE</span>
-        <button onclick="closeKeypadModal()" class="text-neutral-400 hover:text-white text-2xl font-bold leading-none p-1">&times;</button>
+        <button onclick="closeRefuelModal()" class="text-neutral-400 hover:text-white text-2xl font-bold leading-none p-1">&times;</button>
       </div>
 
       <div class="bg-black/80 border border-neutral-800 rounded-2xl p-3 flex justify-between items-baseline px-5">
@@ -244,79 +348,28 @@
       </div>
 
       <div class="grid grid-cols-3 gap-2 font-mono text-xl font-bold">
-        <button onclick="tapKey('1')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">1</button>
-        <button onclick="tapKey('2')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">2</button>
-        <button onclick="tapKey('3')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">3</button>
-
-        <button onclick="tapKey('4')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">4</button>
-        <button onclick="tapKey('5')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">5</button>
-        <button onclick="tapKey('6')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">6</button>
-
-        <button onclick="tapKey('7')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">7</button>
-        <button onclick="tapKey('8')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">8</button>
-        <button onclick="tapKey('9')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">9</button>
-
-        <button onclick="tapKey('.')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">.</button>
-        <button onclick="tapKey('0')" class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white py-3.5 rounded-2xl active:bg-neutral-700 active:scale-95">0</button>
-        <button onclick="tapBackspace()" class="bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 text-red-400 py-3.5 rounded-2xl flex items-center justify-center active:scale-95">
-          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
-        </button>
+        <button onclick="tapKey('1')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">1</button>
+        <button onclick="tapKey('2')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">2</button>
+        <button onclick="tapKey('3')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">3</button>
+        <button onclick="tapKey('4')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">4</button>
+        <button onclick="tapKey('5')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">5</button>
+        <button onclick="tapKey('6')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">6</button>
+        <button onclick="tapKey('7')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">7</button>
+        <button onclick="tapKey('8')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">8</button>
+        <button onclick="tapKey('9')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">9</button>
+        <button onclick="tapKey('.')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">.</button>
+        <button onclick="tapKey('0')" class="bg-neutral-900 border border-neutral-800 text-white py-3 rounded-xl active:scale-95">0</button>
+        <button onclick="tapBackspace()" class="bg-red-950/40 border border-red-800/50 text-red-400 py-3 rounded-xl flex items-center justify-center active:scale-95">&larr;</button>
       </div>
 
-      <button onclick="confirmRefuel()" class="w-full py-4 mt-1 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-black text-sm rounded-2xl tracking-widest uppercase active:scale-95 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all">
+      <button onclick="confirmRefuel()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-black text-sm rounded-xl tracking-widest uppercase active:scale-95 shadow-[0_0_20px_rgba(16,185,129,0.35)]">
         CONFIRM REFUEL
       </button>
     </div>
   </div>
 
-  <!-- ==================== SETTINGS MODAL ==================== -->
-  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="hud-border w-full max-w-sm rounded-2xl p-5 shadow-2xl flex flex-col gap-4 border border-[#FF6600]/40">
-      <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
-        <h3 class="text-sm font-bold tracking-wider text-[#FF6600] uppercase">Dashboard Settings</h3>
-        <button onclick="closeSettingsModal()" class="text-neutral-400 hover:text-white text-lg font-bold p-1">&times;</button>
-      </div>
-
-      <div class="space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-neutral-300">Warning Speed (Amber)</span>
-          <span id="val-warn" class="font-mono font-bold text-[#ffaa00] text-sm">70 KM/H</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="stepSetting('warn', -5)" class="bg-neutral-800 px-3 py-1.5 rounded text-xs font-bold text-neutral-200 active:scale-95">-5</button>
-          <input type="range" id="input-warn" min="30" max="150" step="1" class="flex-1 h-2 bg-neutral-800 rounded-lg cursor-pointer" oninput="syncSetting('warn', this.value)" />
-          <button onclick="stepSetting('warn', 5)" class="bg-neutral-800 px-3 py-1.5 rounded text-xs font-bold text-neutral-200 active:scale-95">+5</button>
-        </div>
-      </div>
-
-      <div class="space-y-1.5">
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-neutral-300">Shift Trigger (Red Flash)</span>
-          <span id="val-peak" class="font-mono font-bold text-red-500 text-sm">95 KM/H</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="stepSetting('peak', -5)" class="bg-neutral-800 px-3 py-1.5 rounded text-xs font-bold text-neutral-200 active:scale-95">-5</button>
-          <input type="range" id="input-peak" min="40" max="160" step="1" class="flex-1 h-2 bg-neutral-800 rounded-lg cursor-pointer" oninput="syncSetting('peak', this.value)" />
-          <button onclick="stepSetting('peak', 5)" class="bg-neutral-800 px-3 py-1.5 rounded text-xs font-bold text-neutral-200 active:scale-95">+5</button>
-        </div>
-      </div>
-
-      <button onclick="previewShiftLights()" class="w-full py-2 bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-xs text-neutral-300 font-semibold rounded-lg tracking-wider active:scale-95">
-        Test Shift Light Flash
-      </button>
-
-      <button onclick="saveAndCloseSettings()" class="w-full py-3 bg-[#FF6600] text-black font-extrabold text-xs rounded-xl tracking-wider uppercase active:scale-95 shadow-[0_0_15px_rgba(255,102,0,0.3)]">
-        Save Changes
-      </button>
-    </div>
-  </div>
-
   <script>
-    let shiftConfig = {
-      warnSpeed: parseInt(localStorage.getItem('shift_warn')) || 70,
-      peakSpeed: parseInt(localStorage.getItem('shift_peak')) || 95
-    };
-
+    // State & Persistent storage
     let state = {
       baseOdo: parseFloat(localStorage.getItem('base_odo')) || 0,
       tripDist: parseFloat(localStorage.getItem('trip_dist')) || 0,
@@ -324,9 +377,6 @@
       fuelRemaining: parseFloat(localStorage.getItem('fuel_rem')) || 10.0,
       lastLat: 18.5204,
       lastLon: 73.8567,
-      isMapVisible: false,
-      mapInitialized: false,
-      autoFollowBike: true, // Auto-center lock state
       gpsWatchId: null,
       activeRoute: null,
       routeSteps: [],
@@ -335,11 +385,9 @@
 
     const TANK_CAPACITY = 13.4;
     const ASSUMED_MILEAGE = 30.0;
-    const leds = document.querySelectorAll('.shift-led');
-    const shiftContainer = document.getElementById('shift-bar-container');
     let keypadBuffer = "0";
 
-    // WakeLock
+    // Auto-rearming Screen WakeLock
     let wakeLockSentinel = null;
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
@@ -351,20 +399,6 @@
     });
     requestWakeLock();
 
-    // Fullscreen
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    }
-    document.addEventListener('fullscreenchange', () => {
-      document.getElementById('fs-enter-icon').classList.toggle('hidden', !!document.fullscreenElement);
-      document.getElementById('fs-exit-icon').classList.toggle('hidden', !document.fullscreenElement);
-      requestWakeLock();
-    });
-
     // Clock
     function updateClock() {
       const now = new Date();
@@ -373,265 +407,198 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ==================== LEAFLET MAP & USER PAN DETECTION ====================
-    let map = null;
-    let bikeMarker = null;
-    let destinationMarker = null;
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // ==================== ANDROID AUTO TAB SWITCHING ====================
+    const tabs = ['nav', 'media', 'phone', 'weather'];
+    function switchTab(activeTab) {
+      tabs.forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`btn-tab-${t}`);
+        if (t === activeTab) {
+          el.classList.remove('hidden');
+          btn.className = "flex flex-col items-center gap-1 text-[#FF6600] active:scale-95 transition-colors";
+        } else {
+          el.classList.add('hidden');
+          btn.className = "flex flex-col items-center gap-1 text-neutral-400 hover:text-white active:scale-95 transition-colors";
+        }
+      });
+      if (activeTab === 'nav' && map) {
+        setTimeout(() => map.invalidateSize(), 150);
+      }
+    }
+
+    // ==================== LEAFLET MAP & OSRM NAVIGATION ====================
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([state.lastLat, state.lastLon], 15);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    const bikeIcon = L.divIcon({
+      className: 'bike-marker',
+      html: `<div style="width:20px;height:20px;background-color:#FF6600;border:3px solid #ffffff;border-radius:50%;box-shadow:0 0 15px #FF6600;"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+    const bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
+
     let routePolyline = null;
+    let destinationMarker = null;
 
-    function initMap() {
-      if (map) return;
-      map = L.map('map', { zoomControl: false, attributionControl: false }).setView([state.lastLat, state.lastLon], 16);
-
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-      const bikeIcon = L.divIcon({
-        className: 'custom-bike-marker',
-        html: `<div style="width: 22px; height: 22px; background-color: #FF6600; border: 3px solid #ffffff; border-radius: 50%; box-shadow: 0 0 15px #FF6600;"></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
-      });
-      bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
-
-      // Disable auto-follow when user manually drags or touches the map
-      map.on('dragstart', () => {
-        setAutoFollow(false);
-      });
-
-      // Tap on map to set Destination
-      map.on('click', (e) => {
-        calculateAndSetRoute(e.latlng.lat, e.latlng.lng, "Pinned Location");
-      });
-
-      state.mapInitialized = true;
-    }
-
-    function setAutoFollow(active) {
-      state.autoFollowBike = active;
-      const btn = document.getElementById('target-bike-btn');
-      if (active) {
-        btn.textContent = "TARGET BIKE (LOCKED)";
-        btn.classList.replace('text-neutral-400', 'text-[#FF6600]');
-        btn.classList.replace('border-neutral-700', 'border-[#FF6600]');
-      } else {
-        btn.textContent = "FREE PAN (TAP TO RE-CENTER)";
-        btn.classList.replace('text-[#FF6600]', 'text-neutral-400');
-        btn.classList.replace('border-[#FF6600]', 'border-neutral-700');
-      }
-    }
-
-    function toggleView() {
-      state.isMapVisible = !state.isMapVisible;
-      const cockpit = document.getElementById('cockpit-view');
-      const mapView = document.getElementById('map-view');
-      const label = document.getElementById('view-toggle-label');
-
-      if (state.isMapVisible) {
-        cockpit.classList.add('hidden');
-        mapView.classList.remove('hidden');
-        label.textContent = "SHOW HUD";
-
-        initMap();
-        setTimeout(() => {
-          if (map) {
-            map.invalidateSize(true);
-            if (state.autoFollowBike && state.lastLat && state.lastLon) {
-              map.setView([state.lastLat, state.lastLon], 16, { animate: false });
-            }
-          }
-        }, 120);
-      } else {
-        cockpit.classList.remove('hidden');
-        mapView.classList.add('hidden');
-        label.textContent = "SHOW MAP";
-      }
-    }
+    map.on('click', (e) => {
+      calculateAndSetRoute(e.latlng.lat, e.latlng.lng);
+    });
 
     function centerBike() {
-      setAutoFollow(true);
-      if (map && state.lastLat && state.lastLon) {
-        map.setView([state.lastLat, state.lastLon], 16, { animate: true });
-      }
+      if (state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16, { animate: true });
     }
 
-    function zoomInMap() { if (map) map.zoomIn(); }
-    function zoomOutMap() { if (map) map.zoomOut(); }
-
-    // ==================== OSRM ROUTE ENGINE ====================
     async function searchDestination() {
       const input = document.getElementById('destination-input');
       const query = input.value.trim();
       if (!query) return;
-
-      input.blur(); // Hide soft keyboard on mobile
+      input.blur();
 
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
         const data = await res.json();
         if (data && data.length > 0) {
-          const destLat = parseFloat(data[0].lat);
-          const destLon = parseFloat(data[0].lon);
-          calculateAndSetRoute(destLat, destLon, data[0].display_name);
+          calculateAndSetRoute(parseFloat(data[0].lat), parseFloat(data[0].lon));
         } else {
-          alert("Location not found. Try entering a city or landmark name.");
+          alert("Location not found.");
         }
       } catch (err) {
-        alert("Search request failed. Please check internet connection.");
+        alert("Search request failed.");
       }
     }
 
-    async function calculateAndSetRoute(destLat, destLon, label) {
-      if (!state.lastLat || !state.lastLon) {
-        alert("Waiting for GPS lock before calculating route...");
-        return;
-      }
-
+    async function calculateAndSetRoute(destLat, destLon) {
       const url = `https://router.project-osrm.org/route/v1/driving/${state.lastLon},${state.lastLat};${destLon},${destLat}?overview=full&geometries=geojson&steps=true`;
-
       try {
         const res = await fetch(url);
         const data = await res.json();
-
-        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-          alert("Could not compute route to destination.");
-          return;
-        }
+        if (data.code !== 'Ok' || !data.routes.length) return;
 
         const route = data.routes[0];
         state.activeRoute = route;
         state.routeSteps = route.legs[0].steps;
         state.currentStepIndex = 0;
 
-        if (routePolyline && map) map.removeLayer(routePolyline);
-        if (destinationMarker && map) map.removeLayer(destinationMarker);
+        if (routePolyline) map.removeLayer(routePolyline);
+        if (destinationMarker) map.removeLayer(destinationMarker);
 
-        const latLngs = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        const latLngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
         routePolyline = L.polyline(latLngs, { color: '#FF6600', weight: 6, opacity: 0.95 }).addTo(map);
 
         const destIcon = L.divIcon({
-          className: 'dest-marker',
-          html: `<div style="width:26px;height:26px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;font-size:13px;box-shadow:0 0 15px #10b981;">🏁</div>`,
-          iconSize: [26, 26],
-          iconAnchor: [13, 13]
+          html: `<div style="width:24px;height:24px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;">🏁</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
         });
         destinationMarker = L.marker([destLat, destLon], { icon: destIcon }).addTo(map);
 
-        // Frame the route on map view
-        map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
-        setAutoFollow(false); // Let rider inspect the full route first
-
-        document.getElementById('map-route-bar').classList.remove('hidden');
-        document.getElementById('route-total-dist').textContent = (route.distance / 1000).toFixed(1) + " KM";
-        document.getElementById('route-total-time').textContent = Math.round(route.duration / 60) + " MIN";
-
+        map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
         document.getElementById('hud-nav-card').classList.remove('hidden');
         updateNavigationHUD();
-
       } catch (err) {
-        alert("Failed to load navigation steps. Please check internet connection.");
+        console.warn("Route fetch error:", err);
       }
     }
 
     function clearActiveRoute() {
-      if (routePolyline && map) map.removeLayer(routePolyline);
-      if (destinationMarker && map) map.removeLayer(destinationMarker);
+      if (routePolyline) map.removeLayer(routePolyline);
+      if (destinationMarker) map.removeLayer(destinationMarker);
       routePolyline = null;
       destinationMarker = null;
       state.activeRoute = null;
       state.routeSteps = [];
-      state.currentStepIndex = 0;
-      document.getElementById('map-route-bar').classList.add('hidden');
       document.getElementById('hud-nav-card').classList.add('hidden');
-      setAutoFollow(true);
     }
 
-    // ==================== CORRECT FORWARD-VECTOR NAVIGATION ICONS ====================
-    // Vector enters from bottom (traveling forward) and bends in the target direction
+    // Android Auto Forward-Vector SVGs (Bottom-to-Top entry)
     function getTurnSvg(type, modifier) {
       if (type === 'arrive') {
-        return `<svg class="w-9 h-9 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
+        return `<svg class="w-7 h-7 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
       }
-
       const mod = (modifier || '').toLowerCase();
-
-      // Sharp Left (forward from bottom, sharp hook left)
-      if (mod.includes('sharp left')) {
-        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M6 13l4-4v3h6a3 3 0 0 1 3 3v6h-3v-6a1 1 0 0 0-1-1H10v3L6 13z"/></svg>`;
-      }
-      // Standard Left Turn (Enter bottom, turn 90 deg left)
       if (mod.includes('left')) {
-        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M9 6l-6 6 6 6 1.41-1.41L6.83 13H15a4 4 0 0 1 4 4v4h3v-4a7 7 0 0 0-7-7H6.83l3.58-3.59L9 6z"/></svg>`;
+        return `<svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M9 6l-6 6 6 6 1.41-1.41L6.83 13H15a4 4 0 0 1 4 4v4h3v-4a7 7 0 0 0-7-7H6.83l3.58-3.59L9 6z"/></svg>`;
       }
-
-      // Sharp Right (forward from bottom, sharp hook right)
-      if (mod.includes('sharp right')) {
-        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M18 13l-4-4v3H8a3 3 0 0 0-3 3v6h3v-6a1 1 0 0 1 1-1h5v3l4-4z"/></svg>`;
-      }
-      // Standard Right Turn (Enter bottom, turn 90 deg right)
       if (mod.includes('right')) {
-        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M15 6l6 6-6 6-1.41-1.41L17.17 13H9a4 4 0 0 0-4 4v4H2v-4a7 7 0 0 1 7-7h8.17l-3.58-3.59L15 6z"/></svg>`;
+        return `<svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M15 6l6 6-6 6-1.41-1.41L17.17 13H9a4 4 0 0 0-4 4v4H2v-4a7 7 0 0 1 7-7h8.17l-3.58-3.59L15 6z"/></svg>`;
       }
-
-      // U-Turn (Enter bottom right, loop 180 deg to the left)
-      if (mod.includes('uturn')) {
-        return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M7 11V7a5 5 0 0 1 10 0v14h-3V7a2 2 0 0 0-4 0v4h2.5L9 15.5 5.5 11H7z"/></svg>`;
-      }
-
-      // Straight ahead (Enter bottom, shoot straight up)
-      return `<svg class="w-9 h-9 fill-current" viewBox="0 0 24 24"><path d="M12 2l-6 6 1.41 1.41L11 5.83V22h2V5.83l3.59 3.58L18 8l-6-6z"/></svg>`;
+      return `<svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M12 2l-6 6 1.41 1.41L11 5.83V22h2V5.83l3.59 3.58L18 8l-6-6z"/></svg>`;
     }
 
     function updateNavigationHUD() {
-      if (!state.routeSteps || state.routeSteps.length === 0) return;
+      if (!state.routeSteps || !state.routeSteps.length) return;
+      const step = state.routeSteps[state.currentStepIndex];
+      if (!step) return;
 
-      const currentStep = state.routeSteps[state.currentStepIndex];
-      if (!currentStep) return;
+      const maneuver = step.maneuver;
+      const distMeters = Math.round(calcDistance(state.lastLat, state.lastLon, maneuver.location[1], maneuver.location[0]) * 1000);
 
-      const maneuver = currentStep.maneuver;
-      const stepCoord = maneuver.location;
-      const distToStepKm = calcDistance(state.lastLat, state.lastLon, stepCoord[1], stepCoord[0]);
-      const distMeters = Math.round(distToStepKm * 1000);
-
-      // Advance to next instruction if within 30 meters
       if (distMeters < 30 && state.currentStepIndex < state.routeSteps.length - 1) {
         state.currentStepIndex++;
         updateNavigationHUD();
         return;
       }
 
-      const distDisplay = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + " KM" : distMeters + " M";
-      document.getElementById('hud-turn-dist').textContent = distDisplay;
-
-      let roadName = currentStep.name ? `ONTO ${currentStep.name}` : "";
-      let instruction = `${maneuver.type} ${maneuver.modifier || ''} ${roadName}`.replace(/_/g, ' ').trim();
-      if (maneuver.type === 'arrive') instruction = "ARRIVING AT DESTINATION";
-      document.getElementById('hud-turn-instruction').textContent = instruction.toUpperCase();
-
+      document.getElementById('hud-turn-dist').textContent = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + " KM" : distMeters + " M";
+      let road = step.name ? `onto ${step.name}` : "";
+      document.getElementById('hud-turn-instruction').textContent = `${maneuver.type} ${maneuver.modifier || ''} ${road}`.toUpperCase();
       document.getElementById('hud-turn-icon').innerHTML = getTurnSvg(maneuver.type, maneuver.modifier);
     }
 
-    function updateShiftLights(currentSpeed) {
-      leds.forEach(led => {
-        led.className = 'shift-led h-2.5 flex-1 rounded-sm bg-neutral-900 border border-neutral-800 transition-colors duration-100';
-      });
-      shiftContainer.classList.remove('shift-strobe');
+    // ==================== ENGINE & GEAR ESTIMATION (KTM DUKE 250) ====================
+    function estimateKtmGearAndRpm(speedKmH) {
+      if (speedKmH < 2) return { gear: 'N', rpm: 1400 };
 
-      if (currentSpeed < shiftConfig.warnSpeed) return;
-      const progress = Math.min(1, (currentSpeed - shiftConfig.warnSpeed) / (shiftConfig.peakSpeed - shiftConfig.warnSpeed));
-      const activeCount = Math.ceil(progress * leds.length);
+      // Duke 250 gear ratio thresholds
+      let gear = 1;
+      let ratio = 145; // rpm per kmh in 1st
 
-      if (currentSpeed >= shiftConfig.peakSpeed) {
-        shiftContainer.classList.add('shift-strobe');
-        leds.forEach(led => led.classList.add('led-flash'));
+      if (speedKmH > 78) { gear = 6; ratio = 62; }
+      else if (speedKmH > 62) { gear = 5; ratio = 72; }
+      else if (speedKmH > 48) { gear = 4; ratio = 85; }
+      else if (speedKmH > 35) { gear = 3; ratio = 100; }
+      else if (speedKmH > 20) { gear = 2; ratio = 120; }
+      else { gear = 1; ratio = 145; }
+
+      let calculatedRpm = Math.min(10500, Math.max(1400, Math.round(speedKmH * ratio)));
+      return { gear: gear, rpm: calculatedRpm };
+    }
+
+    // Shift Light Updater
+    const leds = document.querySelectorAll('.shift-led');
+    const shiftBar = document.getElementById('shift-bar-container');
+    function updateShiftLights(rpm) {
+      leds.forEach(l => l.className = 'shift-led h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800');
+      shiftBar.classList.remove('shift-strobe');
+
+      if (rpm < 6500) return;
+      const pct = Math.min(1, (rpm - 6500) / (9800 - 6500));
+      const activeCount = Math.ceil(pct * leds.length);
+
+      if (rpm >= 9600) {
+        shiftBar.classList.add('shift-strobe');
+        leds.forEach(l => l.className = 'shift-led h-2 flex-1 rounded-sm bg-white shadow-[0_0_15px_#ffffff]');
         return;
       }
 
       for (let i = 0; i < activeCount; i++) {
-        if (i >= leds.length - 2) leds[i].classList.add('led-pre-shift');
-        else leds[i].classList.add('led-warn');
+        leds[i].className = i >= leds.length - 2 
+          ? 'shift-led h-2 flex-1 rounded-sm bg-red-600 shadow-[0_0_10px_#ef4444]'
+          : 'shift-led h-2 flex-1 rounded-sm bg-[#FF6600] shadow-[0_0_8px_#FF6600]';
       }
     }
 
+    // ==================== GPS ENGINE ====================
     function calcDistance(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -642,60 +609,59 @@
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // ==================== GPS ENGINE ====================
     function handleGpsSuccess(pos) {
-      document.getElementById('gps-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
-      document.getElementById('gps-status').textContent = "GPS LOCKED (" + Math.round(pos.coords.accuracy) + "m)";
+      document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
+      document.getElementById('gps-status').textContent = `LOCKED (${Math.round(pos.coords.accuracy)}m)`;
 
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
+      let spd = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
+      if (spd < 3) spd = 0;
 
-      let currentSpeed = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
-      if (currentSpeed < 3) currentSpeed = 0;
-      document.getElementById('speed').textContent = currentSpeed;
-      document.getElementById('map-speed').textContent = currentSpeed;
-
-      updateShiftLights(currentSpeed);
-
-      if (currentSpeed > state.topSpeed) {
-        state.topSpeed = currentSpeed;
+      document.getElementById('speed').textContent = spd;
+      if (spd > state.topSpeed) {
+        state.topSpeed = spd;
         localStorage.setItem('top_speed', state.topSpeed);
         document.getElementById('top-speed').textContent = state.topSpeed;
       }
 
-      if (bikeMarker) {
-        bikeMarker.setLatLng([lat, lon]);
-        // Only pan if Auto-Follow is active (prevents fighting rider's fingers during manual pan)
-        if (state.autoFollowBike && state.isMapVisible && map) {
-          map.panTo([lat, lon], { animate: true });
-        }
-      }
+      // RPM & Gear calculation
+      const engine = estimateKtmGearAndRpm(spd);
+      document.getElementById('gear-text').textContent = engine.gear;
+      document.getElementById('gear-box').style.borderColor = engine.gear === 'N' ? 'rgba(16,185,129,0.7)' : 'rgba(255,102,0,0.8)';
+      document.getElementById('gear-text').className = engine.gear === 'N' ? 'text-4xl md:text-5xl font-black text-emerald-400' : 'text-4xl md:text-5xl font-black text-white';
+      document.getElementById('rpm-val').textContent = engine.rpm.toLocaleString();
+      document.getElementById('rpm-fill').style.width = Math.min(100, (engine.rpm / 10500) * 100) + '%';
+      updateShiftLights(engine.rpm);
 
-      if (state.routeSteps && state.routeSteps.length > 0) {
-        updateNavigationHUD();
-      }
-
+      // Distance calculation
       if (state.lastLat && state.lastLon) {
         const delta = calcDistance(state.lastLat, state.lastLon, lat, lon);
         if (delta > 0.005 && delta < 0.5) {
           state.tripDist += delta;
           state.baseOdo += delta;
           state.fuelRemaining = Math.max(0, state.fuelRemaining - (delta / ASSUMED_MILEAGE));
-
           localStorage.setItem('trip_dist', state.tripDist);
           localStorage.setItem('base_odo', state.baseOdo);
           localStorage.setItem('fuel_rem', state.fuelRemaining);
           renderTelemetry();
         }
       }
+
       state.lastLat = lat;
       state.lastLon = lon;
+      bikeMarker.setLatLng([lat, lon]);
+
+      if (pos.coords.altitude !== null && !isNaN(pos.coords.altitude)) {
+        document.getElementById('gps-alt').textContent = Math.round(pos.coords.altitude);
+      }
+
+      if (state.routeSteps && state.routeSteps.length) updateNavigationHUD();
     }
 
     function handleGpsError(err) {
-      document.getElementById('gps-dot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse";
-      const errorMap = { 1: "PERMISSION BLOCKED", 2: "NO SATELLITE FIX", 3: "GPS TIMEOUT" };
-      document.getElementById('gps-status').textContent = errorMap[err.code] || "GPS ERROR";
+      document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+      document.getElementById('gps-status').textContent = err.code === 1 ? "PERMISSION BLOCKED" : "NO SATELLITE FIX";
     }
 
     function startGpsWatcher() {
@@ -710,56 +676,83 @@
     }
 
     function forceGpsRequest() {
-      document.getElementById('gps-status').textContent = "REQUESTING ACCESS...";
       navigator.geolocation.getCurrentPosition(
-        (pos) => { handleGpsSuccess(pos); startGpsWatcher(); },
+        (pos) => { handleGpsSuccess(pos); startGpsWatcher(); fetchWeather(pos.coords.latitude, pos.coords.longitude); },
         (err) => { handleGpsError(err); },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
-
     startGpsWatcher();
 
     function renderTelemetry() {
-      document.getElementById('total-odo').textContent = state.baseOdo.toFixed(1);
+      document.getElementById('total-odo').textContent = state.baseOdo.toFixed(1) + " KM";
       document.getElementById('trip-dist').textContent = state.tripDist.toFixed(1);
-      document.getElementById('top-speed').textContent = state.topSpeed;
-      
-      const pct = Math.min(100, Math.max(0, (state.fuelRemaining / TANK_CAPACITY) * 100));
-      document.getElementById('fuel-bar').style.width = pct + '%';
-      document.getElementById('fuel-remaining').textContent = `EST: ${state.fuelRemaining.toFixed(1)}L / ${TANK_CAPACITY}L`;
-      document.getElementById('fuel-range').textContent = Math.round(state.fuelRemaining * ASSUMED_MILEAGE);
+      document.getElementById('fuel-range').textContent = Math.round(state.fuelRemaining * ASSUMED_MILEAGE) + " KM";
     }
+    renderTelemetry();
 
-    function calibrateOdo() {
-      const val = prompt("Enter baseline Odometer (KM):", state.baseOdo.toFixed(0));
-      if (val !== null && !isNaN(parseFloat(val))) {
-        state.baseOdo = parseFloat(val);
-        localStorage.setItem('base_odo', state.baseOdo);
-        renderTelemetry();
+    // ==================== SAMSUNG ACCELEROMETER / LEAN ANGLE ====================
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.gamma !== null) {
+        // gamma represents left-to-right tilt in degrees
+        const roll = Math.round(e.gamma);
+        document.getElementById('lean-angle').textContent = Math.abs(roll) + '° ' + (roll < 0 ? 'L' : roll > 0 ? 'R' : '');
+      }
+    }, true);
+
+    // ==================== LIVE ENVIRONMENT WEATHER (OPEN-METEO) ====================
+    async function fetchWeather(lat, lon) {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relativehumidity_2m`);
+        const d = await res.json();
+        if (d && d.current_weather) {
+          document.getElementById('weather-temp').textContent = Math.round(d.current_weather.temperature);
+          document.getElementById('weather-wind').textContent = Math.round(d.current_weather.windspeed);
+          document.getElementById('weather-desc').textContent = d.current_weather.is_day ? "Clear / Daylight" : "Night Conditions";
+        }
+      } catch (e) {
+        console.warn("Weather fetch error:", e);
       }
     }
+    // Initial weather fetch for Pune coordinates
+    fetchWeather(18.5204, 73.8567);
 
-    function resetTrip() {
-      if (confirm("Reset Trip A?")) {
-        state.tripDist = 0;
-        localStorage.setItem('trip_dist', 0);
-        renderTelemetry();
-      }
+    // ==================== BATTERY STATUS API ====================
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(bat => {
+        const updateBat = () => {
+          document.getElementById('bat-level').textContent = Math.round(bat.level * 100) + '%';
+        };
+        updateBat();
+        bat.addEventListener('levelchange', updateBat);
+      });
     }
 
-    // Keypad Logic
-    function openKeypadModal() {
+    // ==================== MEDIA SESSION CONTROLS ====================
+    let isPlaying = false;
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      document.getElementById('play-icon').classList.toggle('hidden', isPlaying);
+      document.getElementById('pause-icon').classList.toggle('hidden', !isPlaying);
+    }
+    function nextTrack() {
+      document.getElementById('track-title').textContent = "Tu Jaane Kahan";
+      document.getElementById('track-artist').textContent = "Lucky Ali";
+    }
+    function prevTrack() {
+      document.getElementById('track-title').textContent = "Kandisa";
+      document.getElementById('track-artist').textContent = "Indian Ocean";
+    }
+
+    // ==================== REFUEL NUMERIC KEYPAD ====================
+    function openRefuelModal() {
       keypadBuffer = "0";
-      updateKeypadDisplay();
+      document.getElementById('keypad-display').textContent = keypadBuffer;
       document.getElementById('refuel-modal').classList.remove('hidden');
     }
-    function closeKeypadModal() {
+    function closeRefuelModal() {
       document.getElementById('refuel-modal').classList.add('hidden');
       requestWakeLock();
-    }
-    function updateKeypadDisplay() {
-      document.getElementById('keypad-display').textContent = keypadBuffer;
     }
     function tapKey(digit) {
       if (keypadBuffer === "0" && digit !== ".") keypadBuffer = digit;
@@ -767,16 +760,19 @@
         if (digit === "." && keypadBuffer.includes(".")) return;
         if (keypadBuffer.length < 5) keypadBuffer += digit;
       }
-      updateKeypadDisplay();
+      document.getElementById('keypad-display').textContent = keypadBuffer;
     }
     function tapBackspace() {
       keypadBuffer = keypadBuffer.length > 1 ? keypadBuffer.slice(0, -1) : "0";
-      updateKeypadDisplay();
+      document.getElementById('keypad-display').textContent = keypadBuffer;
     }
-    function setPreset(amt) { keypadBuffer = amt.toFixed(1); updateKeypadDisplay(); }
+    function setPreset(amt) {
+      keypadBuffer = amt.toFixed(1);
+      document.getElementById('keypad-display').textContent = keypadBuffer;
+    }
     function fillFullTank() {
       keypadBuffer = Math.max(0, TANK_CAPACITY - state.fuelRemaining).toFixed(1);
-      updateKeypadDisplay();
+      document.getElementById('keypad-display').textContent = keypadBuffer;
     }
     function confirmRefuel() {
       const added = parseFloat(keypadBuffer);
@@ -785,57 +781,15 @@
         localStorage.setItem('fuel_rem', state.fuelRemaining);
         renderTelemetry();
       }
-      closeKeypadModal();
+      closeRefuelModal();
     }
 
-    // Settings
-    function openSettingsModal() {
-      document.getElementById('input-warn').value = shiftConfig.warnSpeed;
-      document.getElementById('input-peak').value = shiftConfig.peakSpeed;
-      document.getElementById('val-warn').textContent = shiftConfig.warnSpeed + " KM/H";
-      document.getElementById('val-peak').textContent = shiftConfig.peakSpeed + " KM/H";
-      document.getElementById('settings-modal').classList.remove('hidden');
-    }
-    function closeSettingsModal() {
-      document.getElementById('settings-modal').classList.add('hidden');
-      requestWakeLock();
-    }
-    function syncSetting(type, val) {
-      val = parseInt(val);
-      if (type === 'warn') {
-        if (val >= shiftConfig.peakSpeed) val = shiftConfig.peakSpeed - 5;
-        shiftConfig.warnSpeed = val;
-        document.getElementById('val-warn').textContent = val + " KM/H";
-        document.getElementById('input-warn').value = val;
-      } else {
-        if (val <= shiftConfig.warnSpeed) val = shiftConfig.warnSpeed + 5;
-        shiftConfig.peakSpeed = val;
-        document.getElementById('val-peak').textContent = val + " KM/H";
-        document.getElementById('input-peak').value = val;
-      }
-    }
-    function stepSetting(type, step) {
-      if (type === 'warn') syncSetting('warn', shiftConfig.warnSpeed + step);
-      else syncSetting('peak', shiftConfig.peakSpeed + step);
-    }
-    function previewShiftLights() {
-      updateShiftLights(shiftConfig.peakSpeed);
-      setTimeout(() => updateShiftLights(0), 1500);
-    }
-    function saveAndCloseSettings() {
-      localStorage.setItem('shift_warn', shiftConfig.warnSpeed);
-      localStorage.setItem('shift_peak', shiftConfig.peakSpeed);
-      closeSettingsModal();
-    }
-
-    // Service Worker
+    // Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
-
-    renderTelemetry();
   </script>
 </body>
 </html>
