@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KTM Duke Smart Dash - Bold Center Speed</title>
+  <title>KTM Duke Smart Dash - Rotating Google Maps Style</title>
 
   <!-- PWA Manifest & Theme -->
   <link rel="manifest" href="manifest.json" />
@@ -43,9 +43,24 @@
     }
     .leaflet-container {
       background: #0a0b10 !important;
-      height: 100%;
-      width: 100%;
     }
+
+    /* Oversized rotating map viewport container to eliminate corner clipping */
+    #map-rotator-wrapper {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      transform-origin: center center;
+      transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+      will-change: transform;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
     @keyframes redline-strobe {
       0%, 100% { opacity: 1; filter: drop-shadow(0 0 18px rgba(255, 0, 0, 0.9)); }
       50% { opacity: 0.15; }
@@ -92,22 +107,21 @@
   <!-- ==================== MAIN SPLIT SCREEN ==================== -->
   <div class="flex-1 flex flex-col landscape:flex-row gap-1.5 my-1 min-h-0 overflow-hidden z-10">
 
-    <!-- LEFT CLUSTER: CENTERED BOLD SPEEDOMETER & MINI GEAR BADGE -->
+    <!-- LEFT CLUSTER: BOLD CENTERED SPEEDOMETER & MINI GEAR BADGE -->
     <div class="w-full landscape:w-[45%] flex flex-col justify-between hud-border rounded-xl p-2 md:p-3 shadow-xl relative min-h-0 overflow-hidden flex-shrink-0">
       
-      <!-- Top Strip: Model & Lean Angle -->
+      <!-- Top Strip: Model & Heading Bearing -->
       <div class="flex justify-between items-center text-[10px] font-mono flex-shrink-0">
         <span class="text-[#FF6600] font-bold tracking-wider">DUKE 250 // TFT</span>
         <div class="flex items-center gap-1 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">
-          <span class="text-neutral-400">LEAN:</span>
-          <span id="lean-angle" class="text-cyan-400 font-bold">0°</span>
+          <span class="text-neutral-400">HDG:</span>
+          <span id="hdg-val" class="text-cyan-400 font-bold">0° N</span>
         </div>
       </div>
 
-      <!-- CENTER HERO SPEEDOMETER WITH SMALL GEAR BADGE -->
+      <!-- CENTER SPEED HERO WITH MINI GEAR BADGE -->
       <div class="flex-1 flex flex-col items-center justify-center relative my-auto py-1 min-h-0">
-        
-        <!-- Small Compact Gear Badge (Top-Right of Speedometer) -->
+        <!-- Compact Gear Badge -->
         <div class="absolute top-0 right-2 flex items-center gap-1.5 bg-black/60 border border-neutral-800 px-2 py-1 rounded-lg backdrop-blur-sm">
           <span class="text-[8px] font-mono text-neutral-400 uppercase font-bold">GEAR</span>
           <div id="gear-box" class="w-6 h-6 rounded-md bg-neutral-900 border border-emerald-500/80 flex items-center justify-center">
@@ -115,18 +129,16 @@
           </div>
         </div>
 
-        <!-- Huge Centered Speedometer -->
+        <!-- Huge Centered Speed -->
         <div class="flex items-baseline justify-center">
           <span id="speed" class="text-7xl landscape:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_30px_rgba(255,102,0,0.35)]">0</span>
           <span class="text-sm md:text-base font-black text-[#FF6600] ml-1.5">KM/H</span>
         </div>
 
-        <!-- Sub-Metrics under Speed -->
         <div class="flex items-center gap-4 text-[9px] font-mono text-neutral-400 mt-1">
           <div>MAX: <b id="top-speed" class="text-white font-bold">0</b> KM/H</div>
           <div>TRIP: <b id="trip-dist" class="text-cyan-400 font-bold">0.0</b> KM</div>
         </div>
-
       </div>
 
       <!-- RPM Bar -->
@@ -140,7 +152,7 @@
         </div>
       </div>
 
-      <!-- Telemetry Strip -->
+      <!-- Strip -->
       <div class="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800/80 text-[9px] font-mono flex-shrink-0">
         <div class="flex justify-between">
           <span class="text-neutral-400">ODO:</span>
@@ -156,19 +168,19 @@
     <!-- RIGHT INFOTAINMENT HUB -->
     <div class="w-full landscape:w-[55%] flex-1 flex flex-col aa-glass rounded-xl overflow-hidden shadow-xl relative min-h-0">
       
-      <!-- TAB 1: NAVIGATION & MAPS -->
-      <div id="tab-nav" class="flex-1 flex flex-col relative w-full h-full min-h-0">
+      <!-- ================= TAB 1: DYNAMIC ROTATING GOOGLE-STYLE MAP ================= -->
+      <div id="tab-nav" class="flex-1 relative w-full h-full min-h-0 overflow-hidden">
         
-        <!-- Search bar -->
-        <div class="absolute top-1.5 inset-x-1.5 z-[400] flex gap-1">
+        <!-- Search bar (Static above map, does not spin) -->
+        <div class="absolute top-1.5 inset-x-1.5 z-[500] flex gap-1">
           <input id="destination-input" type="text" placeholder="Navigate to location..." class="flex-1 bg-black/90 border border-neutral-700 px-2.5 py-1.5 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-md" onkeydown="if(event.key==='Enter') searchDestination()" />
           <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3 py-1.5 rounded-lg active:scale-95 shadow">
             GO
           </button>
         </div>
 
-        <!-- Android Auto Turn Overlay Card -->
-        <div id="hud-nav-card" class="hidden absolute top-10 inset-x-1.5 z-[400] bg-black/90 border border-[#FF6600]/40 rounded-lg p-2 flex items-center gap-2 backdrop-blur-md shadow-xl">
+        <!-- Android Auto Turn Overlay Card (Static overlay) -->
+        <div id="hud-nav-card" class="hidden absolute top-10 inset-x-1.5 z-[500] bg-black/90 border border-[#FF6600]/40 rounded-lg p-2 flex items-center gap-2 backdrop-blur-md shadow-xl">
           <div id="hud-turn-icon" class="w-8 h-8 rounded bg-[#FF6600]/20 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0"></div>
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-1.5">
@@ -180,9 +192,16 @@
           <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1 text-sm font-bold">&times;</button>
         </div>
 
-        <div id="map" class="w-full h-full min-h-0 osm-dark-tiles"></div>
+        <!-- ROTATING MAP WRAPPER -->
+        <div id="map-rotator-wrapper">
+          <div id="map" class="osm-dark-tiles"></div>
+        </div>
 
-        <div class="absolute bottom-1.5 right-1.5 z-[400] flex items-center gap-1">
+        <!-- Map Navigation Mode & Center Toggle Controls (Static) -->
+        <div class="absolute bottom-1.5 right-1.5 z-[500] flex items-center gap-1">
+          <button id="heading-mode-btn" onclick="toggleHeadingMode()" class="bg-neutral-900/90 border border-[#FF6600] text-[#FF6600] px-2 py-1 rounded text-[9px] font-bold active:scale-95">
+            HEADING UP
+          </button>
           <button onclick="centerBike()" class="bg-neutral-900/90 border border-neutral-700 text-neutral-200 px-2 py-1 rounded text-[9px] font-bold active:scale-95">
             Recenter
           </button>
@@ -191,7 +210,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: MEDIA PLAYER -->
+      <!-- ================= TAB 2: MEDIA PLAYER ================= -->
       <div id="tab-media" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#FF6600] to-orange-400 flex items-center justify-center shadow-lg">
@@ -223,7 +242,7 @@
         </div>
       </div>
 
-      <!-- TAB 3: PHONE & COMMS -->
+      <!-- ================= TAB 3: PHONE & COMMS ================= -->
       <div id="tab-phone" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
         <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
           <span class="text-[10px] font-mono text-emerald-400 uppercase font-bold">SPEED DIAL / COMMS</span>
@@ -253,7 +272,7 @@
         </div>
       </div>
 
-      <!-- TAB 4: WEATHER -->
+      <!-- ================= TAB 4: WEATHER ================= -->
       <div id="tab-weather" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
         <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
           <span class="text-[10px] font-mono text-cyan-400 uppercase font-bold">ENVIRONMENT TELEMETRY</span>
@@ -312,7 +331,7 @@
     </button>
   </nav>
 
-  <!-- ==================== REFUEL MODAL ==================== -->
+  <!-- ==================== REFUEL NUMERIC KEYPAD MODAL ==================== -->
   <div id="refuel-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3">
     <div class="hud-border w-full max-w-xs rounded-2xl p-4 shadow-2xl flex flex-col gap-2 border border-emerald-500/40">
       <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
@@ -366,14 +385,17 @@
       gpsWatchId: null,
       activeRoute: null,
       routeSteps: [],
-      currentStepIndex: 0
+      currentStepIndex: 0,
+      headingMode: true, // true = Course-Up (rotating), false = North-Up
+      currentHeading: 0,
+      smoothedHeading: 0
     };
 
     const TANK_CAPACITY = 13.4;
     const ASSUMED_MILEAGE = 30.0;
     let keypadBuffer = "0";
 
-    // Auto-rearming Screen WakeLock
+    // WakeLock
     let wakeLockSentinel = null;
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
@@ -424,15 +446,26 @@
       if (map) setTimeout(() => map.invalidateSize(), 200);
     });
 
-    // Leaflet map setup
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([state.lastLat, state.lastLon], 15);
+    // ==================== ROTATING MAP SETUP ====================
+    const map = L.map('map', { 
+      zoomControl: false, 
+      attributionControl: false 
+    }).setView([state.lastLat, state.lastLon], 16);
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
+    // Forward Direction Arrow Marker (Always points forward/up on rotating screen)
     const bikeIcon = L.divIcon({
-      className: 'bike-marker',
-      html: `<div style="width:18px;height:18px;background-color:#FF6600;border:3px solid #ffffff;border-radius:50%;box-shadow:0 0 12px #FF6600;"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
+      className: 'bike-pointer-marker',
+      html: `
+        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 24 24" class="w-7 h-7 drop-shadow-[0_0_8px_#FF6600]">
+            <path fill="#FF6600" stroke="#ffffff" stroke-width="2" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+          </svg>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
     });
     const bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
 
@@ -443,8 +476,65 @@
       calculateAndSetRoute(e.latlng.lat, e.latlng.lng);
     });
 
+    // Dynamic Map Rotation Engine
+    function applyMapRotation(headingDeg) {
+      if (!state.headingMode) {
+        document.getElementById('map-rotator-wrapper').style.transform = `rotate(0deg)`;
+        return;
+      }
+      // Counter-rotate map container so bike forward direction is always UP
+      const rotateDeg = -headingDeg;
+      document.getElementById('map-rotator-wrapper').style.transform = `rotate(${rotateDeg}deg)`;
+    }
+
+    function toggleHeadingMode() {
+      state.headingMode = !state.headingMode;
+      const btn = document.getElementById('heading-mode-btn');
+      if (state.headingMode) {
+        btn.textContent = "HEADING UP";
+        btn.classList.replace('text-neutral-400', 'text-[#FF6600]');
+        btn.classList.replace('border-neutral-700', 'border-[#FF6600]');
+        applyMapRotation(state.currentHeading);
+      } else {
+        btn.textContent = "NORTH UP";
+        btn.classList.replace('text-[#FF6600]', 'text-neutral-400');
+        btn.classList.replace('border-[#FF6600]', 'border-neutral-700');
+        applyMapRotation(0);
+      }
+    }
+
+    // Hardware Compass Listener (Active when vehicle is stopped at signals)
+    function initCompassListener() {
+      const handleOrientation = (e) => {
+        let compassHeading = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : null);
+        const currentSpeed = parseFloat(document.getElementById('speed').textContent) || 0;
+        // Only use compass when stationary (< 4 km/h)
+        if (currentSpeed < 4 && compassHeading !== null && !isNaN(compassHeading)) {
+          state.currentHeading = Math.round(compassHeading);
+          updateHeadingDisplay(state.currentHeading);
+          applyMapRotation(state.currentHeading);
+        }
+      };
+
+      if ('ondeviceorientationabsolute' in window) {
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+      } else if ('ondeviceorientation' in window) {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      }
+    }
+    initCompassListener();
+
+    function updateHeadingDisplay(hdg) {
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      const cardinal = dirs[Math.round(hdg / 45) % 8];
+      document.getElementById('hdg-val').textContent = `${Math.round(hdg)}° ${cardinal}`;
+    }
+
     function centerBike() {
-      if (state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16, { animate: true });
+      if (state.lastLat && state.lastLon) {
+        map.setView([state.lastLat, state.lastLon], 16, { animate: true });
+        applyMapRotation(state.currentHeading);
+      }
     }
 
     async function searchDestination() {
@@ -590,6 +680,7 @@
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
+    // ==================== GPS ENGINE WITH COURSE ROTATION ====================
     function handleGpsSuccess(pos) {
       document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
       document.getElementById('gps-status').textContent = `LOCKED (${Math.round(pos.coords.accuracy)}m)`;
@@ -605,6 +696,17 @@
         localStorage.setItem('top_speed', state.topSpeed);
         document.getElementById('top-speed').textContent = state.topSpeed;
       }
+
+      // Live Dynamic Heading Rotation (GPS ground track prioritized while moving)
+      if (spd >= 4 && pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
+        state.currentHeading = Math.round(pos.coords.heading);
+        updateHeadingDisplay(state.currentHeading);
+        applyMapRotation(state.currentHeading);
+      }
+
+      // Smooth pan map in forward direction
+      bikeMarker.setLatLng([lat, lon]);
+      map.panTo([lat, lon], { animate: true, duration: 0.5 });
 
       const engine = estimateKtmGearAndRpm(spd);
       document.getElementById('gear-text').textContent = engine.gear;
@@ -629,7 +731,6 @@
 
       state.lastLat = lat;
       state.lastLon = lon;
-      bikeMarker.setLatLng([lat, lon]);
 
       if (pos.coords.altitude !== null && !isNaN(pos.coords.altitude)) {
         document.getElementById('gps-alt').textContent = Math.round(pos.coords.altitude);
@@ -668,778 +769,6 @@
       document.getElementById('fuel-range').textContent = Math.round(state.fuelRemaining * ASSUMED_MILEAGE) + " KM";
     }
     renderTelemetry();
-
-    // Lean Angle
-    window.addEventListener('deviceorientation', (e) => {
-      if (e.gamma !== null) {
-        const roll = Math.round(e.gamma);
-        document.getElementById('lean-angle').textContent = Math.abs(roll) + '° ' + (roll < 0 ? 'L' : roll > 0 ? 'R' : '');
-      }
-    }, true);
-
-    // Weather
-    async function fetchWeather(lat, lon) {
-      try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-        const d = await res.json();
-        if (d && d.current_weather) {
-          document.getElementById('weather-temp').textContent = Math.round(d.current_weather.temperature);
-          document.getElementById('weather-wind').textContent = Math.round(d.current_weather.windspeed);
-          document.getElementById('weather-desc').textContent = d.current_weather.is_day ? "Clear Day" : "Night";
-        }
-      } catch (e) {}
-    }
-    fetchWeather(18.5204, 73.8567);
-
-    // Battery
-    if ('getBattery' in navigator) {
-      navigator.getBattery().then(bat => {
-        const updateBat = () => {
-          document.getElementById('bat-level').textContent = Math.round(bat.level * 100) + '%';
-        };
-        updateBat();
-        bat.addEventListener('levelchange', updateBat);
-      });
-    }
-
-    // Media
-    let isPlaying = false;
-    function togglePlay() {
-      isPlaying = !isPlaying;
-      document.getElementById('play-icon').classList.toggle('hidden', isPlaying);
-      document.getElementById('pause-icon').classList.toggle('hidden', !isPlaying);
-    }
-    function nextTrack() {
-      document.getElementById('track-title').textContent = "Tu Jaane Kahan";
-      document.getElementById('track-artist').textContent = "Lucky Ali";
-    }
-    function prevTrack() {
-      document.getElementById('track-title').textContent = "Kandisa";
-      document.getElementById('track-artist').textContent = "Indian Ocean";
-    }
-
-    // Refuel modal
-    function openRefuelModal() {
-      keypadBuffer = "0";
-      document.getElementById('keypad-display').textContent = keypadBuffer;
-      document.getElementById('refuel-modal').classList.remove('hidden');
-    }
-    function closeRefuelModal() {
-      document.getElementById('refuel-modal').classList.add('hidden');
-      requestWakeLock();
-    }
-    function tapKey(digit) {
-      if (keypadBuffer === "0" && digit !== ".") keypadBuffer = digit;
-      else {
-        if (digit === "." && keypadBuffer.includes(".")) return;
-        if (keypadBuffer.length < 5) keypadBuffer += digit;
-      }
-      document.getElementById('keypad-display').textContent = keypadBuffer;
-    }
-    function tapBackspace() {
-      keypadBuffer = keypadBuffer.length > 1 ? keypadBuffer.slice(0, -1) : "0";
-      document.getElementById('keypad-display').textContent = keypadBuffer;
-    }
-    function setPreset(amt) { keypadBuffer = amt.toFixed(1); document.getElementById('keypad-display').textContent = keypadBuffer; }
-    function fillFullTank() {
-      keypadBuffer = Math.max(0, TANK_CAPACITY - state.fuelRemaining).toFixed(1);
-      document.getElementById('keypad-display').textContent = keypadBuffer;
-    }
-    function confirmRefuel() {
-      const added = parseFloat(keypadBuffer);
-      if (!isNaN(added) && added > 0) {
-        state.fuelRemaining = Math.min(TANK_CAPACITY, state.fuelRemaining + added);
-        localStorage.setItem('fuel_rem', state.fuelRemaining);
-        renderTelemetry();
-      }
-      closeRefuelModal();
-    }
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
-      });
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KTM Duke Smart Dash - Bold Center Speed</title>
-
-  <!-- PWA Manifest & Theme -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#07080c" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800;900&family=Inter:wght@400;600;700&display=swap');
-    
-    body {
-      font-family: 'Chakra Petch', sans-serif;
-      background-color: #07080c;
-      color: #e5e7eb;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-    .hud-border {
-      border: 1px solid rgba(255, 102, 0, 0.28);
-      background: linear-gradient(180deg, rgba(17,19,25,0.92) 0%, rgba(9,10,15,0.98) 100%);
-    }
-    .aa-glass {
-      background: rgba(18, 20, 26, 0.88);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .osm-dark-tiles .leaflet-tile {
-      filter: brightness(0.65) invert(1) contrast(2.5) hue-rotate(200deg) saturate(0.2) !important;
-    }
-    .leaflet-container {
-      background: #0a0b10 !important;
-      height: 100%;
-      width: 100%;
-    }
-    @keyframes redline-strobe {
-      0%, 100% { opacity: 1; filter: drop-shadow(0 0 18px rgba(255, 0, 0, 0.9)); }
-      50% { opacity: 0.15; }
-    }
-    .shift-strobe { animation: redline-strobe 0.12s infinite; }
-  </style>
-</head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-1.5 md:p-2 bg-[#07080c]">
-
-  <!-- TOP SHIFT LIGHT BAR -->
-  <div id="shift-bar-container" class="w-full flex items-center justify-between gap-1 px-1 pt-0.5 pb-1 flex-shrink-0 z-40">
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-    <div class="shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800"></div>
-  </div>
-
-  <!-- STATUS HEADER -->
-  <header class="flex justify-between items-center text-[10px] text-neutral-400 font-mono z-40 px-1 py-0.5 flex-shrink-0">
-    <div class="flex items-center gap-1.5">
-      <button onclick="forceGpsRequest()" class="flex items-center gap-1 bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded active:scale-95">
-        <span id="gps-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-        <span id="gps-status" class="text-[9px] font-bold text-neutral-200">ACQUIRING GPS</span>
-      </button>
-
-      <div class="flex items-center gap-1 bg-neutral-900/90 border border-neutral-800 px-1.5 py-0.5 rounded text-[9px]">
-        <span class="text-neutral-400">BAT:</span>
-        <span id="bat-level" class="text-emerald-400 font-bold">--%</span>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <div id="clock" class="text-neutral-200 font-bold text-[11px] font-mono">12:00 PM</div>
-      <button onclick="toggleFullscreen()" class="bg-neutral-800 border border-neutral-700 text-[#FF6600] p-1 rounded active:scale-95">
-        <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- ==================== MAIN SPLIT SCREEN ==================== -->
-  <div class="flex-1 flex flex-col landscape:flex-row gap-1.5 my-1 min-h-0 overflow-hidden z-10">
-
-    <!-- LEFT CLUSTER: CENTERED BOLD SPEEDOMETER & MINI GEAR BADGE -->
-    <div class="w-full landscape:w-[45%] flex flex-col justify-between hud-border rounded-xl p-2 md:p-3 shadow-xl relative min-h-0 overflow-hidden flex-shrink-0">
-      
-      <!-- Top Strip: Model & Lean Angle -->
-      <div class="flex justify-between items-center text-[10px] font-mono flex-shrink-0">
-        <span class="text-[#FF6600] font-bold tracking-wider">DUKE 250 // TFT</span>
-        <div class="flex items-center gap-1 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">
-          <span class="text-neutral-400">LEAN:</span>
-          <span id="lean-angle" class="text-cyan-400 font-bold">0°</span>
-        </div>
-      </div>
-
-      <!-- CENTER HERO SPEEDOMETER WITH SMALL GEAR BADGE -->
-      <div class="flex-1 flex flex-col items-center justify-center relative my-auto py-1 min-h-0">
-        
-        <!-- Small Compact Gear Badge (Top-Right of Speedometer) -->
-        <div class="absolute top-0 right-2 flex items-center gap-1.5 bg-black/60 border border-neutral-800 px-2 py-1 rounded-lg backdrop-blur-sm">
-          <span class="text-[8px] font-mono text-neutral-400 uppercase font-bold">GEAR</span>
-          <div id="gear-box" class="w-6 h-6 rounded-md bg-neutral-900 border border-emerald-500/80 flex items-center justify-center">
-            <span id="gear-text" class="text-xs font-black text-emerald-400">N</span>
-          </div>
-        </div>
-
-        <!-- Huge Centered Speedometer -->
-        <div class="flex items-baseline justify-center">
-          <span id="speed" class="text-7xl landscape:text-8xl md:text-9xl font-black text-white tracking-tighter leading-none drop-shadow-[0_0_30px_rgba(255,102,0,0.35)]">0</span>
-          <span class="text-sm md:text-base font-black text-[#FF6600] ml-1.5">KM/H</span>
-        </div>
-
-        <!-- Sub-Metrics under Speed -->
-        <div class="flex items-center gap-4 text-[9px] font-mono text-neutral-400 mt-1">
-          <div>MAX: <b id="top-speed" class="text-white font-bold">0</b> KM/H</div>
-          <div>TRIP: <b id="trip-dist" class="text-cyan-400 font-bold">0.0</b> KM</div>
-        </div>
-
-      </div>
-
-      <!-- RPM Bar -->
-      <div class="space-y-0.5 flex-shrink-0">
-        <div class="flex justify-between text-[9px] font-mono text-neutral-400">
-          <span>RPM: <b id="rpm-val" class="text-white">0</b></span>
-          <span class="text-red-500 font-bold">10,500 REDLINE</span>
-        </div>
-        <div class="w-full bg-neutral-900 h-2 rounded-full overflow-hidden border border-neutral-800">
-          <div id="rpm-fill" class="h-full bg-gradient-to-r from-cyan-500 via-[#FF6600] to-red-600 transition-all duration-100" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- Telemetry Strip -->
-      <div class="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-neutral-800/80 text-[9px] font-mono flex-shrink-0">
-        <div class="flex justify-between">
-          <span class="text-neutral-400">ODO:</span>
-          <span id="total-odo" class="text-white font-bold">0000.0 KM</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-400">RANGE:</span>
-          <span id="fuel-range" class="text-[#FF6600] font-bold">-- KM</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT INFOTAINMENT HUB -->
-    <div class="w-full landscape:w-[55%] flex-1 flex flex-col aa-glass rounded-xl overflow-hidden shadow-xl relative min-h-0">
-      
-      <!-- TAB 1: NAVIGATION & MAPS -->
-      <div id="tab-nav" class="flex-1 flex flex-col relative w-full h-full min-h-0">
-        
-        <!-- Search bar -->
-        <div class="absolute top-1.5 inset-x-1.5 z-[400] flex gap-1">
-          <input id="destination-input" type="text" placeholder="Navigate to location..." class="flex-1 bg-black/90 border border-neutral-700 px-2.5 py-1.5 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#FF6600] shadow-md" onkeydown="if(event.key==='Enter') searchDestination()" />
-          <button onclick="searchDestination()" class="bg-[#FF6600] hover:bg-orange-600 text-black font-extrabold text-xs px-3 py-1.5 rounded-lg active:scale-95 shadow">
-            GO
-          </button>
-        </div>
-
-        <!-- Android Auto Turn Overlay Card -->
-        <div id="hud-nav-card" class="hidden absolute top-10 inset-x-1.5 z-[400] bg-black/90 border border-[#FF6600]/40 rounded-lg p-2 flex items-center gap-2 backdrop-blur-md shadow-xl">
-          <div id="hud-turn-icon" class="w-8 h-8 rounded bg-[#FF6600]/20 border border-[#FF6600]/40 flex items-center justify-center text-[#FF6600] flex-shrink-0"></div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-baseline gap-1.5">
-              <span id="hud-turn-dist" class="text-base font-black text-white font-mono">--</span>
-              <span class="text-[9px] font-bold text-[#FF6600]">TO TURN</span>
-            </div>
-            <p id="hud-turn-instruction" class="text-[10px] text-neutral-300 font-semibold truncate">Follow route</p>
-          </div>
-          <button onclick="clearActiveRoute()" class="text-neutral-500 hover:text-red-400 p-1 text-sm font-bold">&times;</button>
-        </div>
-
-        <div id="map" class="w-full h-full min-h-0 osm-dark-tiles"></div>
-
-        <div class="absolute bottom-1.5 right-1.5 z-[400] flex items-center gap-1">
-          <button onclick="centerBike()" class="bg-neutral-900/90 border border-neutral-700 text-neutral-200 px-2 py-1 rounded text-[9px] font-bold active:scale-95">
-            Recenter
-          </button>
-          <button onclick="map.zoomIn()" class="bg-neutral-900/90 border border-neutral-700 text-white w-6 h-6 rounded text-xs font-bold active:scale-95">+</button>
-          <button onclick="map.zoomOut()" class="bg-neutral-900/90 border border-neutral-700 text-white w-6 h-6 rounded text-xs font-bold active:scale-95">-</button>
-        </div>
-      </div>
-
-      <!-- TAB 2: MEDIA PLAYER -->
-      <div id="tab-media" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#FF6600] to-orange-400 flex items-center justify-center shadow-lg">
-            <svg class="w-6 h-6 fill-black" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <span class="text-[9px] font-mono text-[#FF6600] uppercase font-bold">MEDIA CONTROLS</span>
-            <h3 id="track-title" class="text-sm font-bold text-white truncate">Kandisa</h3>
-            <p id="track-artist" class="text-[11px] text-neutral-400 truncate">Indian Ocean</p>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-center gap-5 my-auto">
-          <button onclick="prevTrack()" class="p-3 rounded-xl bg-neutral-800 border border-neutral-700 text-white active:scale-90">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-          </button>
-          <button onclick="togglePlay()" class="p-4 rounded-2xl bg-[#FF6600] text-black active:scale-90 shadow-[0_0_20px_rgba(255,102,0,0.5)]">
-            <svg id="play-icon" class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="pause-icon" class="w-6 h-6 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
-          <button onclick="nextTrack()" class="p-3 rounded-xl bg-neutral-800 border border-neutral-700 text-white active:scale-90">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <svg class="w-3.5 h-3.5 fill-neutral-400" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-          <input type="range" min="0" max="100" value="85" class="flex-1 h-1.5 bg-neutral-800 rounded accent-[#FF6600]" />
-        </div>
-      </div>
-
-      <!-- TAB 3: PHONE & COMMS -->
-      <div id="tab-phone" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
-        <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
-          <span class="text-[10px] font-mono text-emerald-400 uppercase font-bold">SPEED DIAL / COMMS</span>
-          <span class="text-[9px] text-neutral-500 font-mono">BLUETOOTH LINK</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 my-auto">
-          <a href="tel:112" class="p-2.5 bg-red-950/40 border border-red-700/50 rounded-lg flex items-center gap-2 active:scale-95">
-            <div class="w-7 h-7 rounded bg-red-600/30 flex items-center justify-center text-red-400 font-bold text-xs">SOS</div>
-            <div>
-              <div class="text-[11px] font-bold text-white">Emergency</div>
-              <div class="text-[8px] text-neutral-400 font-mono">112</div>
-            </div>
-          </a>
-
-          <a href="tel:" class="p-2.5 bg-neutral-800/80 border border-neutral-700 rounded-lg flex items-center gap-2 active:scale-95">
-            <div class="w-7 h-7 rounded bg-emerald-600/30 flex items-center justify-center text-emerald-400 font-bold text-xs">🏠</div>
-            <div>
-              <div class="text-[11px] font-bold text-white">Home</div>
-              <div class="text-[8px] text-neutral-400 font-mono">Speed Dial</div>
-            </div>
-          </a>
-        </div>
-
-        <div class="p-1.5 bg-neutral-900/90 border border-neutral-800 rounded text-center text-[9px] text-neutral-400 font-mono">
-          Helmet Bluetooth Intercom Ready
-        </div>
-      </div>
-
-      <!-- TAB 4: WEATHER -->
-      <div id="tab-weather" class="hidden flex-1 flex flex-col justify-between p-3 bg-gradient-to-b from-neutral-900 to-black min-h-0">
-        <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
-          <span class="text-[10px] font-mono text-cyan-400 uppercase font-bold">ENVIRONMENT TELEMETRY</span>
-          <span class="text-[9px] text-neutral-500 font-mono">OPEN-METEO LIVE</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 my-auto">
-          <div class="p-2 bg-neutral-800/60 rounded-lg border border-neutral-700/60">
-            <span class="text-[9px] font-mono text-neutral-400">TEMPERATURE</span>
-            <div class="text-2xl font-extrabold text-white"><span id="weather-temp">--</span>°C</div>
-            <span id="weather-desc" class="text-[9px] text-cyan-400">Loading...</span>
-          </div>
-
-          <div class="p-2 bg-neutral-800/60 rounded-lg border border-neutral-700/60">
-            <span class="text-[9px] font-mono text-neutral-400">WIND</span>
-            <div class="text-2xl font-extrabold text-white"><span id="weather-wind">--</span> <span class="text-[9px] text-neutral-400">km/h</span></div>
-            <span class="text-[9px] text-neutral-400">Ground speed</span>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center text-[9px] font-mono text-neutral-400">
-          <span>ALT: <b id="gps-alt" class="text-white">--</b> M</span>
-          <span>LOCATION: <b class="text-cyan-400">Pune</b></span>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- ==================== ANDROID AUTO APP DOCK ==================== -->
-  <nav class="w-full flex items-center justify-around py-1.5 px-2 aa-glass rounded-xl z-40 flex-shrink-0">
-    <button onclick="switchTab('nav')" id="btn-tab-nav" class="flex flex-col items-center gap-0.5 text-[#FF6600] active:scale-95">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
-      <span class="text-[8px] font-bold tracking-wider">MAPS</span>
-    </button>
-
-    <button onclick="switchTab('media')" id="btn-tab-media" class="flex flex-col items-center gap-0.5 text-neutral-400 hover:text-white active:scale-95">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-      <span class="text-[8px] font-bold tracking-wider">MUSIC</span>
-    </button>
-
-    <button onclick="switchTab('phone')" id="btn-tab-phone" class="flex flex-col items-center gap-0.5 text-neutral-400 hover:text-white active:scale-95">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-      <span class="text-[8px] font-bold tracking-wider">PHONE</span>
-    </button>
-
-    <button onclick="switchTab('weather')" id="btn-tab-weather" class="flex flex-col items-center gap-0.5 text-neutral-400 hover:text-white active:scale-95">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
-      <span class="text-[8px] font-bold tracking-wider">WEATHER</span>
-    </button>
-
-    <button onclick="openRefuelModal()" class="flex flex-col items-center gap-0.5 text-emerald-400 active:scale-95">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      <span class="text-[8px] font-bold tracking-wider">REFUEL</span>
-    </button>
-  </nav>
-
-  <!-- ==================== REFUEL MODAL ==================== -->
-  <div id="refuel-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3">
-    <div class="hud-border w-full max-w-xs rounded-2xl p-4 shadow-2xl flex flex-col gap-2 border border-emerald-500/40">
-      <div class="flex justify-between items-center border-b border-neutral-800 pb-1">
-        <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">LOG PETROL INTAKE</span>
-        <button onclick="closeRefuelModal()" class="text-neutral-400 hover:text-white text-xl font-bold leading-none">&times;</button>
-      </div>
-
-      <div class="bg-black/80 border border-neutral-800 rounded-xl p-2 flex justify-between items-baseline px-4">
-        <span class="text-[10px] font-mono text-neutral-400">LITERS:</span>
-        <div class="flex items-baseline gap-1">
-          <span id="keypad-display" class="text-2xl font-extrabold text-white">0.0</span>
-          <span class="text-xs font-bold text-emerald-400">L</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-3 gap-1.5 font-mono text-[10px] font-bold">
-        <button onclick="setPreset(2.0)" class="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-1.5 rounded-lg active:scale-95">+2.0 L</button>
-        <button onclick="setPreset(5.0)" class="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-1.5 rounded-lg active:scale-95">+5.0 L</button>
-        <button onclick="fillFullTank()" class="bg-emerald-950/60 text-emerald-300 py-1.5 rounded-lg active:scale-95">FULL TANK</button>
-      </div>
-
-      <div class="grid grid-cols-3 gap-1.5 font-mono text-lg font-bold">
-        <button onclick="tapKey('1')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">1</button>
-        <button onclick="tapKey('2')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">2</button>
-        <button onclick="tapKey('3')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">3</button>
-        <button onclick="tapKey('4')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">4</button>
-        <button onclick="tapKey('5')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">5</button>
-        <button onclick="tapKey('6')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">6</button>
-        <button onclick="tapKey('7')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">7</button>
-        <button onclick="tapKey('8')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">8</button>
-        <button onclick="tapKey('9')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">9</button>
-        <button onclick="tapKey('.')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">.</button>
-        <button onclick="tapKey('0')" class="bg-neutral-900 border border-neutral-800 text-white py-2 rounded-lg active:scale-95">0</button>
-        <button onclick="tapBackspace()" class="bg-red-950/40 text-red-400 py-2 rounded-lg flex items-center justify-center active:scale-95">&larr;</button>
-      </div>
-
-      <button onclick="confirmRefuel()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-black text-xs rounded-lg uppercase active:scale-95">
-        CONFIRM REFUEL
-      </button>
-    </div>
-  </div>
-
-  <script>
-    let state = {
-      baseOdo: parseFloat(localStorage.getItem('base_odo')) || 0,
-      tripDist: parseFloat(localStorage.getItem('trip_dist')) || 0,
-      topSpeed: parseFloat(localStorage.getItem('top_speed')) || 0,
-      fuelRemaining: parseFloat(localStorage.getItem('fuel_rem')) || 10.0,
-      lastLat: 18.5204,
-      lastLon: 73.8567,
-      gpsWatchId: null,
-      activeRoute: null,
-      routeSteps: [],
-      currentStepIndex: 0
-    };
-
-    const TANK_CAPACITY = 13.4;
-    const ASSUMED_MILEAGE = 30.0;
-    let keypadBuffer = "0";
-
-    // Auto-rearming Screen WakeLock
-    let wakeLockSentinel = null;
-    async function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-        try { wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch (err) {}
-      }
-    }
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') requestWakeLock();
-    });
-    requestWakeLock();
-
-    // Clock
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    }
-
-    // Tabs
-    const tabs = ['nav', 'media', 'phone', 'weather'];
-    function switchTab(activeTab) {
-      tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        const btn = document.getElementById(`btn-tab-${t}`);
-        if (t === activeTab) {
-          el.classList.remove('hidden');
-          btn.className = "flex flex-col items-center gap-0.5 text-[#FF6600] active:scale-95";
-        } else {
-          el.classList.add('hidden');
-          btn.className = "flex flex-col items-center gap-0.5 text-neutral-400 hover:text-white active:scale-95";
-        }
-      });
-      if (activeTab === 'nav' && map) {
-        setTimeout(() => map.invalidateSize(), 150);
-      }
-    }
-
-    window.addEventListener('resize', () => {
-      if (map) setTimeout(() => map.invalidateSize(), 200);
-    });
-
-    // Leaflet map setup
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([state.lastLat, state.lastLon], 15);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-    const bikeIcon = L.divIcon({
-      className: 'bike-marker',
-      html: `<div style="width:18px;height:18px;background-color:#FF6600;border:3px solid #ffffff;border-radius:50%;box-shadow:0 0 12px #FF6600;"></div>`,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
-    });
-    const bikeMarker = L.marker([state.lastLat, state.lastLon], { icon: bikeIcon }).addTo(map);
-
-    let routePolyline = null;
-    let destinationMarker = null;
-
-    map.on('click', (e) => {
-      calculateAndSetRoute(e.latlng.lat, e.latlng.lng);
-    });
-
-    function centerBike() {
-      if (state.lastLat && state.lastLon) map.setView([state.lastLat, state.lastLon], 16, { animate: true });
-    }
-
-    async function searchDestination() {
-      const input = document.getElementById('destination-input');
-      const query = input.value.trim();
-      if (!query) return;
-      input.blur();
-
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-        const data = await res.json();
-        if (data && data.length > 0) {
-          calculateAndSetRoute(parseFloat(data[0].lat), parseFloat(data[0].lon));
-        } else {
-          alert("Location not found.");
-        }
-      } catch (err) {
-        alert("Search request failed.");
-      }
-    }
-
-    async function calculateAndSetRoute(destLat, destLon) {
-      const url = `https://router.project-osrm.org/route/v1/driving/${state.lastLon},${state.lastLat};${destLon},${destLat}?overview=full&geometries=geojson&steps=true`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.code !== 'Ok' || !data.routes.length) return;
-
-        const route = data.routes[0];
-        state.activeRoute = route;
-        state.routeSteps = route.legs[0].steps;
-        state.currentStepIndex = 0;
-
-        if (routePolyline) map.removeLayer(routePolyline);
-        if (destinationMarker) map.removeLayer(destinationMarker);
-
-        const latLngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
-        routePolyline = L.polyline(latLngs, { color: '#FF6600', weight: 6, opacity: 0.95 }).addTo(map);
-
-        const destIcon = L.divIcon({
-          html: `<div style="width:22px;height:22px;background:#10b981;border:2px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;">🏁</div>`,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11]
-        });
-        destinationMarker = L.marker([destLat, destLon], { icon: destIcon }).addTo(map);
-
-        map.fitBounds(routePolyline.getBounds(), { padding: [40, 40] });
-        document.getElementById('hud-nav-card').classList.remove('hidden');
-        updateNavigationHUD();
-      } catch (err) {}
-    }
-
-    function clearActiveRoute() {
-      if (routePolyline) map.removeLayer(routePolyline);
-      if (destinationMarker) map.removeLayer(destinationMarker);
-      routePolyline = null;
-      destinationMarker = null;
-      state.activeRoute = null;
-      state.routeSteps = [];
-      document.getElementById('hud-nav-card').classList.add('hidden');
-    }
-
-    function getTurnSvg(type, modifier) {
-      if (type === 'arrive') {
-        return `<svg class="w-6 h-6 fill-emerald-400" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
-      }
-      const mod = (modifier || '').toLowerCase();
-      if (mod.includes('left')) {
-        return `<svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M9 6l-6 6 6 6 1.41-1.41L6.83 13H15a4 4 0 0 1 4 4v4h3v-4a7 7 0 0 0-7-7H6.83l3.58-3.59L9 6z"/></svg>`;
-      }
-      if (mod.includes('right')) {
-        return `<svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M15 6l6 6-6 6-1.41-1.41L17.17 13H9a4 4 0 0 0-4 4v4H2v-4a7 7 0 0 1 7-7h8.17l-3.58-3.59L15 6z"/></svg>`;
-      }
-      return `<svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l-6 6 1.41 1.41L11 5.83V22h2V5.83l3.59 3.58L18 8l-6-6z"/></svg>`;
-    }
-
-    function updateNavigationHUD() {
-      if (!state.routeSteps || !state.routeSteps.length) return;
-      const step = state.routeSteps[state.currentStepIndex];
-      if (!step) return;
-
-      const maneuver = step.maneuver;
-      const distMeters = Math.round(calcDistance(state.lastLat, state.lastLon, maneuver.location[1], maneuver.location[0]) * 1000);
-
-      if (distMeters < 30 && state.currentStepIndex < state.routeSteps.length - 1) {
-        state.currentStepIndex++;
-        updateNavigationHUD();
-        return;
-      }
-
-      document.getElementById('hud-turn-dist').textContent = distMeters >= 1000 ? (distMeters / 1000).toFixed(1) + " KM" : distMeters + " M";
-      let road = step.name ? `onto ${step.name}` : "";
-      document.getElementById('hud-turn-instruction').textContent = `${maneuver.type} ${maneuver.modifier || ''} ${road}`.toUpperCase();
-      document.getElementById('hud-turn-icon').innerHTML = getTurnSvg(maneuver.type, maneuver.modifier);
-    }
-
-    // Engine & Gear Estimation
-    function estimateKtmGearAndRpm(speedKmH) {
-      if (speedKmH < 2) return { gear: 'N', rpm: 1400 };
-      let gear = 1;
-      let ratio = 145;
-
-      if (speedKmH > 78) { gear = 6; ratio = 62; }
-      else if (speedKmH > 62) { gear = 5; ratio = 72; }
-      else if (speedKmH > 48) { gear = 4; ratio = 85; }
-      else if (speedKmH > 35) { gear = 3; ratio = 100; }
-      else if (speedKmH > 20) { gear = 2; ratio = 120; }
-      else { gear = 1; ratio = 145; }
-
-      return { gear: gear, rpm: Math.min(10500, Math.max(1400, Math.round(speedKmH * ratio))) };
-    }
-
-    const leds = document.querySelectorAll('.shift-led');
-    const shiftBar = document.getElementById('shift-bar-container');
-    function updateShiftLights(rpm) {
-      leds.forEach(l => l.className = 'shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-neutral-900 border border-neutral-800');
-      shiftBar.classList.remove('shift-strobe');
-
-      if (rpm < 6500) return;
-      const pct = Math.min(1, (rpm - 6500) / (9800 - 6500));
-      const activeCount = Math.ceil(pct * leds.length);
-
-      if (rpm >= 9600) {
-        shiftBar.classList.add('shift-strobe');
-        leds.forEach(l => l.className = 'shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-white shadow-[0_0_15px_#ffffff]');
-        return;
-      }
-
-      for (let i = 0; i < activeCount; i++) {
-        leds[i].className = i >= leds.length - 2 
-          ? 'shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-red-600 shadow-[0_0_8px_#ef4444]'
-          : 'shift-led h-1.5 md:h-2 flex-1 rounded-sm bg-[#FF6600] shadow-[0_0_6px_#FF6600]';
-      }
-    }
-
-    function calcDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-    }
-
-    function handleGpsSuccess(pos) {
-      document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
-      document.getElementById('gps-status').textContent = `LOCKED (${Math.round(pos.coords.accuracy)}m)`;
-
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      let spd = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
-      if (spd < 3) spd = 0;
-
-      document.getElementById('speed').textContent = spd;
-      if (spd > state.topSpeed) {
-        state.topSpeed = spd;
-        localStorage.setItem('top_speed', state.topSpeed);
-        document.getElementById('top-speed').textContent = state.topSpeed;
-      }
-
-      const engine = estimateKtmGearAndRpm(spd);
-      document.getElementById('gear-text').textContent = engine.gear;
-      document.getElementById('gear-box').style.borderColor = engine.gear === 'N' ? 'rgba(16,185,129,0.8)' : 'rgba(255,102,0,0.8)';
-      document.getElementById('gear-text').className = engine.gear === 'N' ? 'text-xs font-black text-emerald-400' : 'text-xs font-black text-white';
-      document.getElementById('rpm-val').textContent = engine.rpm.toLocaleString();
-      document.getElementById('rpm-fill').style.width = Math.min(100, (engine.rpm / 10500) * 100) + '%';
-      updateShiftLights(engine.rpm);
-
-      if (state.lastLat && state.lastLon) {
-        const delta = calcDistance(state.lastLat, state.lastLon, lat, lon);
-        if (delta > 0.005 && delta < 0.5) {
-          state.tripDist += delta;
-          state.baseOdo += delta;
-          state.fuelRemaining = Math.max(0, state.fuelRemaining - (delta / ASSUMED_MILEAGE));
-          localStorage.setItem('trip_dist', state.tripDist);
-          localStorage.setItem('base_odo', state.baseOdo);
-          localStorage.setItem('fuel_rem', state.fuelRemaining);
-          renderTelemetry();
-        }
-      }
-
-      state.lastLat = lat;
-      state.lastLon = lon;
-      bikeMarker.setLatLng([lat, lon]);
-
-      if (pos.coords.altitude !== null && !isNaN(pos.coords.altitude)) {
-        document.getElementById('gps-alt').textContent = Math.round(pos.coords.altitude);
-      }
-      if (state.routeSteps && state.routeSteps.length) updateNavigationHUD();
-    }
-
-    function handleGpsError(err) {
-      document.getElementById('gps-dot').className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
-      document.getElementById('gps-status').textContent = err.code === 1 ? "BLOCKED" : "NO SATELLITE";
-    }
-
-    function startGpsWatcher() {
-      if (state.gpsWatchId) navigator.geolocation.clearWatch(state.gpsWatchId);
-      if ('geolocation' in navigator) {
-        state.gpsWatchId = navigator.geolocation.watchPosition(
-          handleGpsSuccess,
-          handleGpsError,
-          { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-        );
-      }
-    }
-
-    function forceGpsRequest() {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { handleGpsSuccess(pos); startGpsWatcher(); fetchWeather(pos.coords.latitude, pos.coords.longitude); },
-        (err) => { handleGpsError(err); },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    }
-    startGpsWatcher();
-
-    function renderTelemetry() {
-      document.getElementById('total-odo').textContent = state.baseOdo.toFixed(1) + " KM";
-      document.getElementById('trip-dist').textContent = state.tripDist.toFixed(1);
-      document.getElementById('fuel-range').textContent = Math.round(state.fuelRemaining * ASSUMED_MILEAGE) + " KM";
-    }
-    renderTelemetry();
-
-    // Lean Angle
-    window.addEventListener('deviceorientation', (e) => {
-      if (e.gamma !== null) {
-        const roll = Math.round(e.gamma);
-        document.getElementById('lean-angle').textContent = Math.abs(roll) + '° ' + (roll < 0 ? 'L' : roll > 0 ? 'R' : '');
-      }
-    }, true);
 
     // Weather
     async function fetchWeather(lat, lon) {
